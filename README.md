@@ -1,1 +1,1 @@
-# ITP_Elternsprechtag
+# Projekt: Elternsprechtagreservierungssystem
