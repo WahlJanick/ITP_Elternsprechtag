@@ -4,20 +4,28 @@ use App\Http\Controllers\CustombookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    Log::info('Welcome page visited');
-    return view('welcome');
+    return view('home');
 });
 
-Route::get('/info', function () {
-    Log::info('Phpinfo page visited');
-    return phpinfo();
+Route::get('/register', function () {
+    return view('register');
 });
 
-/*
-Route::get('custombook/', function () {
-    return view('customBook/home');
+Route::get('/books', function () {
+    return view('books');
 });
-*/
+
+Route::get('/teacher', function () {
+    return view('teacher');
+});
+
+Route::get('/booked', function () {
+    return view('booked');
+});
+
+Route::get('/admin', function () {
+    return view('admin');
+});
 
 //Route::get('/custombook(', [CustombookController::class, 'index']); // einzelnen Endpunkt einbinden
 Route::resource('custombook', CustombookController::class);     // alle Endpunkte der Klasse einbinden
