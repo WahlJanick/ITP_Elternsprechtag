@@ -1,6 +1,8 @@
 <?php
 
-use App\Http\Controllers\CustombookController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
+  use App\Http\Controllers\TimeslotController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,8 +29,9 @@ Route::get('/admin', function () {
     return view('admin');
 });
 
-//Route::get('/custombook(', [CustombookController::class, 'index']); // einzelnen Endpunkt einbinden
-Route::resource('custombook', CustombookController::class);     // alle Endpunkte der Klasse einbinden
+Route::resource('students', StudentController::class);
+Route::resource('teachers', TeacherController::class);
+Route::resource('timeslots', TimeslotController::class);
 
 Route::get('/health', function () {
     $status = [];
