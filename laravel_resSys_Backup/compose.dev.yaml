@@ -33,8 +33,8 @@ services:
         XDEBUG_LOG: /dev/stdout
         XDEBUG_LOG_LEVEL: 0
     env_file:
-      # Load the environment variables from the Laravel application
-      - .env
+      # Docker-specific environment variables for container networking
+      - .env.docker
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       # Mount the application code for live updates
@@ -64,7 +64,7 @@ services:
     tty: true  # Enables an interactive terminal
     stdin_open: true  # Keeps standard input open for 'docker exec'
     env_file:
-      - .env
+      - .env.docker
     volumes:
       - ./:/var/www
     networks:

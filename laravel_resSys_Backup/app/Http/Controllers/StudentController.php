@@ -1,91 +1,68 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\Timeslot;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class StudentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): View
+
+//Seite 1 – "Mögliche Buchungen"
+    public function dashboard(): View
     {
-        $students = Student::all();
-        return view('students.index', compact('students'));
+        /** @var \App\Models\Student $student */
+        $student = auth()->user();
+
+        $teachers = Teacher::whereJsonContains('classes', $student->class_name)
+            ->whereHas('timeslots', fn($q) => $q->where('is_reserved', false))
+            ->get();
+
+        // Welche Lehrer hat der Schüler bereits gebucht? → Slots sperren
+        $bookedTeacherIds = Timeslot::where('student_id', $student->student_id)
+            ->pluck('teacher_id')
+            ->toArray();
+
+        return view('students.dashboard', compact('teachers', 'bookedTeacherIds'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): View
+    
+    //Timeslot-Panel eines Lehrers (durch AJAX-Request von der Dashboard-Seite geladen)
+     
+    public function teacherTimeslots(Teacher $teacher): View
     {
-        return view('students.create');
+        /** @var \App\Models\Student $student */
+        $student = auth()->user();
+
+        $freeTimeslots = $teacher->timeslots()
+            ->where('is_reserved', false)
+            ->orderBy('starts_at')
+            ->get();
+
+        $alreadyBooked = Timeslot::where('teacher_id', $teacher->teacher_id)
+            ->where('student_id', $student->student_id)
+            ->exists();
+
+        return view('students.partials.timeslot-panel', compact(
+            'teacher',
+            'freeTimeslots',
+            'alreadyBooked'
+        ));
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): RedirectResponse
+//Seite 2 – "Gebuchte Timeslots"
+    public function myBookings(): View
     {
-        $validated = $request->validate([
-            'student_id' => 'required|integer|unique:students,student_id',
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'class_name' => 'required|string|max:255',
-        ]);
+        /** @var \App\Models\Student $student */
+        $student = auth()->user();
 
-        Student::create($validated);
+        $bookings = Timeslot::with('teacher')
+            ->where('student_id', $student->student_id)
+            ->where('is_reserved', true)
+            ->orderBy('starts_at')
+            ->get();
 
-        return redirect()->route('students.index')
-            ->with('success', 'Student created successfully.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Student $student): View
-    {
-        $student->load('timeslots');
-        return view('students.show', compact('student'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Student $student): View
-    {
-        return view('students.edit', compact('student'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Student $student): RedirectResponse
-    {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'class_name' => 'required|string|max:255',
-        ]);
-
-        $student->update($validated);
-
-        return redirect()->route('students.index')
-            ->with('success', 'Student updated successfully.');
-
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Student $student): RedirectResponse
-    {
-        $student->delete();
-        return redirect()->route('students.index')
-            ->with('success', 'Student deleted successfully.');
+        return view('students.my-bookings', compact('bookings'));
     }
 }
