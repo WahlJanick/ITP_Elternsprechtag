@@ -12,14 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
-        });
+    $table->id();
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->timestamp('email_verified_at')->nullable();
+    
+    // WICHTIG: Das Passwort muss 'nullable' sein, weil Azure-Nutzer kein Passwort in deiner DB haben!
+    $table->string('password')->nullable(); 
+    
+    // NEU: Deine Felder für das Schulprojekt
+    $table->string('klasse')->nullable(); // Für Schüler (z.B. 3AHIT)
+    $table->boolean('is_teacher')->default(false); // Um Lehrer von Schülern zu trennen
+    
+    $table->rememberToken();
+    $table->timestamps();
+});
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

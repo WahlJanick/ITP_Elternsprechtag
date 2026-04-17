@@ -1,26 +1,50 @@
 <?php
 
+
 use App\Http\Controllers\CustombookController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\AuthController;
+use App\Models\User;
+
+Route::get('/student/booking', function () {
+    // Wenn die DB leer ist, gibt das eine leere Collection zurück (kein Fehler)
+    $teachers = User::where('is_teacher', true)->get();
+
+    return view('student.booking', [
+        'teachers' => $teachers
+    ]);
+})->middleware('auth');
+
+Route::get('/auth/azure', [AuthController::class, 'redirectToAzure']);
+Route::get('/auth/azure/callback', [AuthController::class, 'handleAzureCallback']);
 
 Route::get('/', function () {
-    Log::info('Welcome page visited');
-    return view('welcome');
+    Log::info('Page visited');
+    return view('anmelden');
 });
 
-Route::get('/info', function () {
-    Log::info('Phpinfo page visited');
-    return phpinfo();
+Route::get('/student/booking', function () {
+    // Wir laden nur User, die Lehrer sind, und sortieren sie nach Alphabet
+    $teachers = \App\Models\User::where('is_teacher', true)
+                ->orderBy('name')
+                ->get();
+
+    return view('student.booking', compact('teachers'));
+})->middleware('auth');
+
+Route::get('/teacher/dashboard', function () {
+    return view('teacher.dashboard'); // Erstelle diese Blade-Datei
+})->middleware('auth');
+
+Route::get('/logout', function() {
+    Auth::logout();
+    return redirect('/');
 });
 
-/*
-Route::get('custombook/', function () {
-    return view('customBook/home');
-});
-*/
-
-//Route::get('/custombook(', [CustombookController::class, 'index']); // einzelnen Endpunkt einbinden
-Route::resource('custombook', CustombookController::class);     // alle Endpunkte der Klasse einbinden
 
 Route::get('/health', function () {
     $status = [];
