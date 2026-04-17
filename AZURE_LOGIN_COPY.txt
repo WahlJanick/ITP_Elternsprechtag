@@ -1,0 +1,225 @@
+================================================================================
+AZURE LOGIN - FILES TO COPY TO MIGRATIONS BRANCH
+================================================================================
+
+This file contains all the Azure login components from the 'routes' branch.
+Copy each section into the corresponding file in your 'migrations' branch.
+
+================================================================================
+1. app/Http/Controllers/AuthController.php (NEW FILE)
+================================================================================
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
+class AuthController extends Controller
+{
+    public function redirectToAzure()
+    {
+        return Socialite::driver('azure')->redirect();
+    }
+
+    public function handleAzureCallback()
+{
+    // DIESE ZEILE FEHLT BEI DIR:
+    $azureUser = \Laravel\Socialite\Facades\Socialite::driver('azure')->user();
+
+    // Erst danach kannst du auf $azureUser zugreifen:
+    $jobTitle = $azureUser->user['jobTitle'] ?? '';
+
+    $isTeacher = str_contains(strtolower($jobTitle), 'teacher') || str_contains(strtolower($jobTitle), 'lehrer');
+
+    $user = \App\Models\User::updateOrCreate([
+        'email' => $azureUser->getEmail(),
+    ], [
+        'name' => $azureUser->getName(),
+        'klasse' => $jobTitle,
+        'is_teacher' => $isTeacher,
+        // Passwort generieren, um den SQL-Fehler zu vermeiden
+        'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(32)),
+    ]);
+
+    // ... nachdem der User eingeloggt wurde
+\Illuminate\Support\Facades\Auth::login($user);
+
+// DIESE ZEILE HINZUFÜGEN:
+session(['klasse' => $jobTitle]);
+
+    // WICHTIG: Prüfe ob die Pfade mit deinen Routen übereinstimmen
+    if ($isTeacher) {
+        return redirect('/teacher/dashboard');
+    }
+
+    return redirect('/student/booking');
+}
+}
+
+================================================================================
+2. config/services.php (ADD TO EXISTING FILE)
+================================================================================
+
+Add this to the end of the return array (before the closing bracket):
+
+    'azure' => [
+        'client_id' => env('AZURE_CLIENT_ID'),
+        'client_secret' => env('AZURE_CLIENT_SECRET'),
+        'redirect' => env('AZURE_REDIRECT_URI'),
+        'tenant' => env('AZURE_TENANT_ID'),
+        'proxy' => env('PROXY')
+    ],
+
+================================================================================
+3. resources/views/anmelden.blade.php (NEW FILE)
+================================================================================
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Laravel</title>
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <style>
+            /* Inline Tailwind-like styles */
+            body { background: #FDFDFC; font-family: 'Instrument Sans', sans-serif; }
+            .login-box { margin: 40px auto; width: 250px; text-align: center; }
+            .login-btn { background: #0078d4; color: white; padding: 12px;
+                        text-decoration: none; border-radius: 4px; display: block;
+                        font-weight: 600; }
+            .login-btn:hover { background: #005a9e; }
+        </style>
+    </head>
+    <body>
+        <div class="login-box">
+            <h2 style="margin-bottom: 20px; color: #1b1b18;">Schul-Login</h2>
+
+            <a href="{{ url('/auth/azure') }}" class="login-btn">
+                Mit Microsoft anmelden
+            </a>
+
+            @if(session('error'))
+                <p style="color: red; margin-top: 10px; font-size: 14px;">{{ session('error') }}</p>
+            @endif
+        </div>
+    </body>
+</html>
+
+================================================================================
+4. routes/web.php (ADD TO YOUR EXISTING ROUTES FILE)
+================================================================================
+
+Add these imports at the top:
+
+use App\Http\Controllers\AuthController;
+
+Then add these routes:
+
+// Azure OAuth Routes
+Route::get('/auth/azure', [AuthController::class, 'redirectToAzure']);
+Route::get('/auth/azure/callback', [AuthController::class, 'handleAzureCallback']);
+
+// Login page (root)
+Route::get('/', function () {
+    return view('anmelden');
+});
+
+// Protected routes (require login)
+Route::get('/student/booking', function () {
+    $teachers = \App\Models\User::where('is_teacher', true)
+                ->orderBy('name')
+                ->get();
+    return view('student.booking', compact('teachers'));
+})->middleware('auth');
+
+Route::get('/teacher/dashboard', function () {
+    return view('teacher.dashboard');
+})->middleware('auth');
+
+// Logout
+Route::get('/logout', function() {
+    Auth::logout();
+    return redirect('/');
+});
+
+================================================================================
+5. database/migrations/2026_04_16_072518_make_password_nullable_on_users_table.php (NEW FILE)
+================================================================================
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            // Makes password optional for Azure users
+            $table->string('password')->nullable()->change();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('password')->nullable(false)->change();
+        });
+    }
+};
+
+================================================================================
+6. app/Models/User.php (ADD TO EXISTING FILE)
+================================================================================
+
+Add these fields to the $fillable array:
+
+protected $fillable = [
+    'name',
+    'email',
+    'password',
+    'klasse',        // ADD THIS
+    'is_teacher',    // ADD THIS
+];
+
+================================================================================
+7. .env file (ADD THESE VARIABLES)
+================================================================================
+
+AZURE_CLIENT_ID=your-client-id
+AZURE_CLIENT_SECRET=your-client-secret
+AZURE_REDIRECT_URI=http://localhost/auth/azure/callback
+AZURE_TENANT_ID=common
+
+================================================================================
+8. composer.json (CHECK/ADD DEPENDENCY)
+================================================================================
+
+Make sure you have this in the "require" section:
+
+"laravel/socialite": "^5.0"
+
+Then run: composer install
+
+================================================================================
+STEPS TO SETUP:
+================================================================================
+
+1. Copy AuthController.php to app/Http/Controllers/
+2. Add Azure config to config/services.php
+3. Copy anmelden.blade.php to resources/views/
+4. Add routes to routes/web.php
+5. Copy the migration file to database/migrations/
+6. Update User.php model with new fillable fields
+7. Add Azure credentials to .env file
+8. Run: composer install (if Socialite not installed)
+9. Run: php artisan migrate
+
+================================================================================
