@@ -16,8 +16,8 @@ Route::view('/', 'anmelden')->name('login');
 
 // Dev Login (nur für lokale Entwicklung)
 Route::get('/dev-login', [DevLoginController::class, 'showDevLogin'])->name('dev.login');
-Route::get('/dev-login/student', [DevLoginController::class, 'loginAsStudent'])->name('dev.login.student');
-Route::get('/dev-login/teacher', [DevLoginController::class, 'loginAsTeacher'])->name('dev.login.teacher');
+Route::match(['get', 'post'], '/dev-login/student', [DevLoginController::class, 'loginAsStudent'])->name('dev.login.student');
+Route::match(['get', 'post'], '/dev-login/teacher', [DevLoginController::class, 'loginAsTeacher'])->name('dev.login.teacher');
 Route::get('/dev-login/admin', [DevLoginController::class, 'loginAsAdmin'])->name('dev.login.admin');
 Route::view('/home', 'home');
 
@@ -57,6 +57,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin', [PortalController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('/admin/teachers/{teacher}', [PortalController::class, 'adminTeacherShow'])->name('admin.teachers.show');
+    Route::get('/admin/timeslots/create', [PortalController::class, 'adminTimeslotCreate'])->name('admin.timeslots.create');
+    Route::post('/admin/timeslots', [PortalController::class, 'adminTimeslotStore'])->name('admin.timeslots.store');
+    Route::get('/admin/timeslots/{timeslot}/edit', [PortalController::class, 'adminTimeslotEdit'])->name('admin.timeslots.edit');
+    Route::post('/admin/timeslots/{timeslot}', [PortalController::class, 'adminTimeslotUpdate'])->name('admin.timeslots.update');
+    Route::delete('/admin/timeslots/{timeslot}', [PortalController::class, 'adminTimeslotDestroy'])->name('admin.timeslots.destroy');
     Route::post('/admin/timeslots/{timeslot}/release', [PortalController::class, 'adminReleaseSlot'])->name('admin.timeslots.release');
 
     Route::match(['get', 'post'], '/logout', function () {

@@ -6,6 +6,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Timeslot;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -512,5 +513,110 @@ class PortalController extends Controller
     private function ensureAdmin(): void
     {
         abort_unless(auth()->user()?->isAdminUser(), 403);
+    }
+
+    public function adminTimeslotCreate(Request $request)
+    {
+        $this->ensureAdmin();
+
+        $teacherId = $request->input('teacher');
+        $teacher = Teacher::find($teacherId);
+
+        abort_if(!$teacher, 404);
+
+        return view('admin.timeslot-form', [
+            'teacher' => $teacher,
+            'teachers' => Teacher::all(),
+            'students' => Student::all(),
+            'isEdit' => false,
+        ]);
+    }
+
+    public function adminTimeslotStore(Request $request)
+    {
+        $this->ensureAdmin();
+
+        $validated = $request->validate([
+            'teacher_id' => 'required|integer|exists:teachers,teacher_id',
+            'student_id' => 'nullable|integer|exists:students,student_id',
+            'starts_at' => 'required|date_format:H:i',
+            'ends_at' => 'required|date_format:H:i|after:starts_at',
+            'room' => 'required|string|max:255',
+            'is_reserved' => 'boolean',
+            'day' => 'required|date',
+        ]);
+
+        // Gesamtes Datum erstellen
+        $startTime = \Carbon\Carbon::parse($validated['day'] . ' ' . $validated['starts_at']);
+        $endTime = \Carbon\Carbon::parse($validated['day'] . ' ' . $validated['ends_at']);
+
+        Timeslot::create([
+            'teacher_id' => $validated['teacher_id'],
+            'student_id' => $validated['student_id'],
+            'starts_at' => $startTime,
+            'ends_at' => $endTime,
+            'room' => $validated['room'],
+            'is_reserved' => $validated['is_reserved'] ?? false,
+            'day' => $validated['day'],
+        ]);
+
+        return redirect()->route('admin.teachers.show', Teacher::find($validated['teacher_id'])->slug)
+            ->with('success', 'Termin wurde erstellt.');
+    }
+
+    public function adminTimeslotEdit(Timeslot $timeslot)
+    {
+        $this->ensureAdmin();
+
+        return view('admin.timeslot-form', [
+            'timeslot' => $timeslot,
+            'teacher' => $timeslot->teacher,
+            'teachers' => Teacher::all(),
+            'students' => Student::all(),
+            'isEdit' => true,
+        ]);
+    }
+
+    public function adminTimeslotUpdate(Request $request, Timeslot $timeslot)
+    {
+        $this->ensureAdmin();
+
+        $validated = $request->validate([
+            'teacher_id' => 'integer|exists:teachers,teacher_id',
+            'student_id' => 'nullable|integer|exists:students,student_id',
+            'starts_at' => 'required|date_format:H:i',
+            'ends_at' => 'required|date_format:H:i|after:starts_at',
+            'room' => 'required|string|max:255',
+            'is_reserved' => 'boolean',
+            'day' => 'required|date',
+        ]);
+
+        // Gesamtes Datum aktualisieren
+        $startTime = \Carbon\Carbon::parse($validated['day'] . ' ' . $validated['starts_at']);
+        $endTime = \Carbon\Carbon::parse($validated['day'] . ' ' . $validated['ends_at']);
+
+        $timeslot->update([
+            'teacher_id' => $validated['teacher_id'],
+            'student_id' => $validated['student_id'],
+            'starts_at' => $startTime,
+            'ends_at' => $endTime,
+            'room' => $validated['room'],
+            'is_reserved' => $validated['is_reserved'] ?? false,
+            'day' => $validated['day'],
+        ]);
+
+        return redirect()->route('admin.teachers.show', $timeslot->teacher->slug)
+            ->with('success', 'Termin wurde aktualisiert.');
+    }
+
+    public function adminTimeslotDestroy(Timeslot $timeslot)
+    {
+        $this->ensureAdmin();
+
+        $teacherSlug = $timeslot->teacher->slug;
+        $timeslot->delete();
+
+        return redirect()->route('admin.teachers.show', $teacherSlug)
+            ->with('success', 'Termin wurde gelöscht.');
     }
 }

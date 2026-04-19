@@ -111,35 +111,128 @@
         .icon {
             font-size: 1.3rem;
         }
+
+        .student-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .student-inputs input {
+            padding: 8px 12px;
+            border: 2px solid #4d79ce;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .role-btn {
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .role-btn > *:not(.student-inputs):not(.role-student > .student-inputs) {
+            width: 100%;
+        }
+
+        .role-btn select,
+        .role-btn input[type="text"] {
+            padding: 10px 14px;
+            border: 2px solid #4d79ce;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: white;
+            margin-bottom: 8px;
+        }
+
+        .role-btn button {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #4d79ce;
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
     <div class="dev-login-box">
         <h1>Dev Login</h1>
-        <p class="subtitle">Schneller Login für Entwicklung & Demos</p>
-
-        <div class="warning">
-            ⚠️ Nur für lokale Entwicklung!
-        </div>
+        <div style="position: absolute; top: 20px; right: 20px; font-weight: 700; font-size: 1.2rem; color: #173f7b;" id="student-initials"></div>
 
         <div class="role-grid">
-            <a href="{{ route('dev.login.student') }}" class="role-btn role-student">
-                <span class="icon">🎓</span>
-                Als Student einloggen
-            </a>
+            <div class="role-btn role-student">
+                <span>Als Student einloggen</span>
+                <div class="student-inputs">
+                    <input type="text" id="student-firstname" placeholder="Vorname" />
+                    <input type="text" id="student-lastname" placeholder="Nachname" />
+                    <input type="text" id="student-class" placeholder="Klasse" value="3AHIT" />
+                </div>
+                <form method="POST" action="{{ route('dev.login.student') }}">
+                    @csrf
+                    <input type="hidden" name="firstname" id="input-firstname" />
+                    <input type="hidden" name="lastname" id="input-lastname" />
+                    <input type="hidden" name="class" id="input-class" />
+                    <button type="submit">Einloggen</button>
+                </form>
+            </div>
 
-            <a href="{{ route('dev.login.teacher') }}" class="role-btn role-teacher">
-                <span class="icon">👨‍🏫</span>
-                Als Lehrer einloggen
-            </a>
+            <div class="role-btn role-teacher">
+                <span>Als Lehrer einloggen</span>
+                <select id="teacher-select">
+                    <option value="">Lehrer wählen...</option>
+                    @foreach(\App\Models\Teacher::all() as $teacher)
+                        <option value="{{ $teacher->teacher_id }}">{{ $teacher->full_name }} ({{ $teacher->kuerzel }})</option>
+                    @endforeach
+                </select>
+                <form method="POST" action="{{ route('dev.login.teacher') }}">
+                    @csrf
+                    <input type="hidden" name="teacher_id" id="input-teacher-id" />
+                    <button type="submit">Einloggen</button>
+                </form>
+            </div>
 
             <a href="{{ route('dev.login.admin') }}" class="role-btn role-admin">
-                <span class="icon">⚙️</span>
-                Als Admin einloggen
+                <span>Als Admin einloggen</span>
             </a>
         </div>
 
         <a href="{{ route('login') }}" class="back-link">Zurück zur normalen Anmeldung</a>
+
+        <script>
+            // Student form
+            function updateStudentInputs() {
+                const first = document.getElementById('student-firstname').value || '';
+                const last = document.getElementById('student-lastname').value || '';
+                const cls = document.getElementById('student-class').value || '3AHIT';
+                document.getElementById('input-firstname').value = first;
+                document.getElementById('input-lastname').value = last;
+                document.getElementById('input-class').value = cls;
+
+                // Update initials display
+                const initials = (first.charAt(0) + last.charAt(0)).toUpperCase();
+                document.getElementById('student-initials').textContent = initials;
+            }
+
+            // Teacher form
+            document.getElementById('teacher-select').addEventListener('change', function() {
+                document.getElementById('input-teacher-id').value = this.value;
+            });
+
+            // Initialize
+            updateStudentInputs();
+            document.getElementById('student-firstname').addEventListener('input', updateStudentInputs);
+            document.getElementById('student-lastname').addEventListener('input', updateStudentInputs);
+            document.getElementById('student-class').addEventListener('input', updateStudentInputs);
+        </script>
     </div>
 </body>
 </html>

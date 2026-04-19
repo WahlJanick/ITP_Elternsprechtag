@@ -23,26 +23,40 @@ class DevLoginController extends Controller
         return view('dev-login');
     }
 
-    public function loginAsStudent(): RedirectResponse
+    public function loginAsStudent(Request $request): RedirectResponse
     {
         if (! $this->isDevEnvironment()) {
             abort(404);
         }
 
-        $user = $this->createOrGetUser('student');
+        $firstname = $request->input('firstname', 'Student');
+        $lastname = $request->input('lastname', 'Test');
+        $className = $request->input('class', '3AHIT');
+
+        // Speichere temporär die Daten in Session
+        $request->session()->put('dev_student_firstname', $firstname);
+        $request->session()->put('dev_student_lastname', $lastname);
+        $request->session()->put('dev_student_class', $className);
+
+        $user = $this->createOrGetStudentUser($firstname, $lastname, $className);
 
         Auth::login($user);
 
         return redirect()->route('student.booking');
     }
 
-    public function loginAsTeacher(): RedirectResponse
+    public function loginAsTeacher(Request $request): RedirectResponse
     {
         if (! $this->isDevEnvironment()) {
             abort(404);
         }
 
-        $user = $this->createOrGetUser('teacher');
+        $teacherId = $request->input('teacher_id');
+
+        // Speichere temporär die Daten in Session
+        $request->session()->put('dev_teacher_id', $teacherId);
+
+        $user = $this->createOrGetTeacherUser($teacherId);
 
         Auth::login($user);
 
@@ -55,7 +69,7 @@ class DevLoginController extends Controller
             abort(404);
         }
 
-        $user = $this->createOrGetUser('admin');
+        $user = $this->createOrGetAdminUser();
 
         Auth::login($user);
 
@@ -67,9 +81,11 @@ class DevLoginController extends Controller
         return app()->environment('local', 'development') || env('APP_DEBUG', false);
     }
 
-    private function createOrGetUser(string $role): User
+    private function createOrGetStudentUser(string $firstname, string $lastname, string $className): User
     {
-        $email = "dev-{$role}@test.local";
+        // Eindeutige Email basierend auf Name + Klasse für separaten Account
+        $emailSlug = Str::slug("{$firstname}-{$lastname}-{$className}");
+        $email = "dev-student-{$emailSlug}@test.local";
 
         $user = User::firstOrNew(['email' => $email]);
 
@@ -77,35 +93,63 @@ class DevLoginController extends Controller
             $user->password = Hash::make(Str::random(32));
         }
 
-        $userData = [
-            'name' => ucfirst($role) . ' Test',
-            'klasse' => $role === 'student' ? '3AHIT' : null,
-            'is_teacher' => $role === 'teacher',
-            'is_admin' => $role === 'admin',
-        ];
-
-        // Für Lehrer: Verknüpfung mit existierendem Teacher
-        if ($role === 'teacher') {
-            $teacher = Teacher::first();
-            if ($teacher) {
-                $userData['teacher_id'] = $teacher->teacher_id;
-            }
-        }
-
-        $user->fill($userData);
+        $user->name = "{$firstname} {$lastname}";
+        $user->klasse = $className;
+        $user->is_teacher = false;
+        $user->is_admin = false;
         $user->save();
 
-        // Für Student: Auch Student-Record erstellen
-        if ($role === 'student') {
-            Student::updateOrCreate(
-                ['student_id' => $user->id],
-                [
-                    'first_name' => 'Student',
-                    'last_name' => 'Test',
-                    'class_name' => '3AHIT',
-                ]
-            );
+        // Student-Record erstellen/aktualisieren
+        Student::updateOrCreate(
+            ['student_id' => $user->id],
+            [
+                'first_name' => $firstname,
+                'last_name' => $lastname,
+                'class_name' => $className,
+            ]
+        );
+
+        return $user;
+    }
+
+    private function createOrGetTeacherUser(?string $teacherId = null): User
+    {
+        $email = "dev-teacher@test.local";
+
+        $user = User::firstOrNew(['email' => $email]);
+
+        if (! $user->exists || blank($user->password)) {
+            $user->password = Hash::make(Str::random(32));
         }
+
+        $teacher = Teacher::find($teacherId) ?? Teacher::first();
+        $user->name = $teacher?->full_name ?? 'Teacher Test';
+        $user->klasse = null;
+        $user->is_teacher = true;
+        $user->is_admin = false;
+        $user->teacher_id = $teacher?->teacher_id;
+
+        $user->save();
+
+        return $user;
+    }
+
+    private function createOrGetAdminUser(): User
+    {
+        $email = "dev-admin@test.local";
+
+        $user = User::firstOrNew(['email' => $email]);
+
+        if (! $user->exists || blank($user->password)) {
+            $user->password = Hash::make(Str::random(32));
+        }
+
+        $user->name = 'Admin Test';
+        $user->klasse = null;
+        $user->is_teacher = false;
+        $user->is_admin = true;
+
+        $user->save();
 
         return $user;
     }
