@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Schul-Login</title>
+        <title>HtlWY-Elternsprechtag</title>
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
         <style>
@@ -32,6 +32,7 @@
             h1 {
                 margin: 0 0 10px;
                 font-size: 2rem;
+                text-align: center;  
             }
 
             p {
@@ -82,18 +83,12 @@
     </head>
     <body>
         <div class="login-box">
-            <h1>Schul-Login</h1>
-            <p>Die Anmeldung laeuft ueber Microsoft Azure und leitet danach automatisch in die passende Ansicht weiter.</p>
+            <h1>Login</h1>
 
             <a href="{{ url('/auth/azure') }}" class="login-btn">
                 Mit Microsoft anmelden
             </a>
 
-            <div class="hint-box">
-                <span class="hint-title">Rollenlogik</span>
-                <p>Lehrer: Ein Azure-Benutzer wird als Lehrer erkannt, wenn sein Name mit einem Eintrag aus der importierten Lehrerliste uebereinstimmt.</p>
-                <p>Admin: Ein Azure-Benutzer wird als Admin erkannt, wenn seine Mailadresse in `ADMIN_EMAILS` eingetragen ist oder der Azure-Jobtitel `admin` enthaelt.</p>
-            </div>
 
             @if(session('error'))
                 <div class="error">{{ session('error') }}</div>

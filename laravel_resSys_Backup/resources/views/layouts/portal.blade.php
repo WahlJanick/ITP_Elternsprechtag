@@ -576,15 +576,7 @@
         <header class="portal-header">
             <div class="header-inner">
                 <a class="logo-link" href="{{ $homeRoute ? route($homeRoute) : route('login') }}">
-                    <div class="logo-card" aria-label="HTL Waidhofen">
-                        <div class="logo-grid">
-                            <span class="logo-square"></span>
-                            <span class="logo-square"></span>
-                            <span class="logo-square"></span>
-                            <span class="logo-square"></span>
-                        </div>
-                        <div class="logo-text">HTL<br>Waidhofen</div>
-                    </div>
+                    <img src="{{ asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png') }}" alt="HTL Waidhofen" style="height: 60px; background: white; padding: 6px; border-radius: 4px;">
                 </a>
 
                 <h1 class="page-title">{{ $roleTitle ?? 'Portal-Ansicht' }}</h1>
@@ -594,7 +586,7 @@
                         <a
                             href="{{ route($link['route'], $link['params'] ?? []) }}"
                             class="header-link {{ request()->routeIs($link['active'] ?? $link['route']) ? 'is-active' : '' }}"
-                        >
+                        >   
                             {{ $link['label'] }}
                         </a>
                     @endforeach

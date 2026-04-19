@@ -61,11 +61,14 @@ class PortalController extends Controller
             ->where('is_reserved', true)
             ->exists();
 
+        $teacherRoom = $this->getTeacherRoom($selectedTeacher['reference_id']);
+
         return view('student.teacher-show', [
             'teacher' => $selectedTeacher,
-            'teachers' => $teachers,
+            'teachers' => $this->getAdjacentTeachers($teachers, $selectedTeacher['slug']),
             'freeSlots' => $this->freeSlotsForTeacher($selectedTeacher),
             'alreadyBooked' => $alreadyBooked,
+            'teacherRoom' => $teacherRoom,
         ]);
     }
 
@@ -73,6 +76,34 @@ class PortalController extends Controller
     {
         $this->ensureStudent();
 
+        return $this->processBooking($timeslot);
+    }
+
+    public function bookSlotFromForm(): RedirectResponse
+    {
+        $this->ensureStudent();
+
+        $timeslotId = request()->input('timeslot_id');
+
+        if (! $timeslotId) {
+            return redirect()
+                ->back()
+                ->with('error', 'Bitte waehle einen Timeslot aus.');
+        }
+
+        $timeslot = Timeslot::find($timeslotId);
+
+        if (! $timeslot) {
+            return redirect()
+                ->back()
+                ->with('error', 'Timeslot nicht gefunden.');
+        }
+
+        return $this->processBooking($timeslot);
+    }
+
+    private function processBooking(Timeslot $timeslot): RedirectResponse
+    {
         if ($timeslot->is_reserved) {
             return redirect()
                 ->back()
@@ -349,6 +380,31 @@ class PortalController extends Controller
                 ];
             })
             ->values();
+    }
+
+    private function getTeacherRoom(int $teacherId): string
+    {
+        $firstSlot = Timeslot::query()
+            ->where('teacher_id', $teacherId)
+            ->first();
+
+        return $firstSlot?->room ?? 'TBD';
+    }
+
+    private function getAdjacentTeachers(Collection $teachers, string $currentSlug): Collection
+    {
+        $allTeachers = $teachers->values();
+        $currentIndex = $allTeachers->search(fn ($t) => $t['slug'] === $currentSlug);
+
+        if ($currentIndex === false) {
+            return collect();
+        }
+
+        // 2 Lehrer davor und 2 danach
+        $start = max(0, $currentIndex - 2);
+        $end = min($allTeachers->count() - 1, $currentIndex + 2);
+
+        return $allTeachers->slice($start, $end - $start + 1)->values();
     }
 
     private function ensureStudentRecord(): Student

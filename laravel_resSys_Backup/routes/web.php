@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DevLoginController;
 use App\Http\Controllers\PortalController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
@@ -12,6 +13,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::view('/', 'anmelden')->name('login');
+
+// Dev Login (nur für lokale Entwicklung)
+Route::get('/dev-login', [DevLoginController::class, 'showDevLogin'])->name('dev.login');
+Route::get('/dev-login/student', [DevLoginController::class, 'loginAsStudent'])->name('dev.login.student');
+Route::get('/dev-login/teacher', [DevLoginController::class, 'loginAsTeacher'])->name('dev.login.teacher');
+Route::get('/dev-login/admin', [DevLoginController::class, 'loginAsAdmin'])->name('dev.login.admin');
 Route::view('/home', 'home');
 
 Route::get('/register', function () {
@@ -41,7 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/student/booking', [PortalController::class, 'studentDashboard'])->name('student.booking');
     Route::get('/student/teachers', [PortalController::class, 'studentTeachers'])->name('student.teachers.index');
     Route::get('/student/teachers/{teacher}', [PortalController::class, 'studentTeacherShow'])->name('student.teachers.show');
-    Route::post('/student/timeslots/{timeslot}/book', [PortalController::class, 'bookTeacherSlot'])->name('student.timeslots.book');
+    Route::post('/student/timeslots/{timeslot}/book', [PortalController::class, 'bookTeacherSlot'])->name('student.timeslots.book.direct');
+    Route::post('/student/timeslots/book', [PortalController::class, 'bookSlotFromForm'])->name('student.timeslots.book');
     Route::get('/student/bookings', [PortalController::class, 'studentBookings'])->name('student.bookings');
     Route::post('/student/bookings/{timeslot}/cancel', [PortalController::class, 'cancelStudentBooking'])->name('student.bookings.cancel');
 
