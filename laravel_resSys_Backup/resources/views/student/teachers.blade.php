@@ -15,23 +15,29 @@
             <div class="panel-header">
                 <div>
                     <span class="eyebrow">Buchung</span>
-                    <h2 class="panel-title">Lehrer mit freien Timeslots</h2>
+                    <h2 class="panel-title">Lehrer, die dich unterrichten</h2>
                     <p class="panel-subtitle">
-                        Waehle einen Lehrer aus.
+                        @if($currentClass)
+                            Klasse {{ $currentClass }}. Lehrer ohne freie Slots bleiben sichtbar.
+                        @else
+                            Waehle einen Lehrer aus.
+                        @endif
                     </p>
                 </div>
                 <a class="button" href="{{ route('student.bookings') }}">Meine Termine</a>
             </div>
 
             @if($teachers->isEmpty())
-                <p class="empty-copy">Fuer deine aktuelle Ansicht sind keine Lehrer mit freien Timeslots vorhanden.</p>
+                <p class="empty-copy">Fuer deine aktuelle Ansicht sind keine Lehrer hinterlegt.</p>
             @else
                 <div class="teacher-grid">
                     @foreach($teachers as $teacher)
                         <a class="tile" href="{{ route('student.teachers.show', $teacher['slug']) }}">
                             <span class="tile-code">{{ $teacher['short'] }}</span>
                             <span class="tile-title">{{ $teacher['name'] }}</span>
-                            <span class="status-chip is-free">{{ $teacher['free_slots'] }} freie Slots</span>
+                            <span class="status-chip {{ $teacher['free_slots'] > 0 ? 'is-free' : 'is-booked' }}">
+                                {{ $teacher['free_slots'] > 0 ? $teacher['free_slots'].' freie Slots' : 'Aktuell keine freien Slots' }}
+                            </span>
                         </a>
                     @endforeach
                 </div>

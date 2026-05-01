@@ -56,7 +56,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/dashboard', [PortalController::class, 'teacherDashboard'])->name('teacher.dashboard');
 
     Route::get('/admin', [PortalController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::post('/admin/teachers/accounts', [PortalController::class, 'adminTeacherAccountsStore'])->name('admin.teachers.accounts.store');
+    Route::post('/admin/teachers/accounts/{user}/create-profile', [PortalController::class, 'adminTeacherAccountCreateProfile'])->name('admin.teachers.accounts.create-profile');
+    Route::post('/admin/teachers/accounts/{user}/delete', [PortalController::class, 'adminTeacherAccountDelete'])->name('admin.teachers.accounts.delete');
     Route::get('/admin/teachers/{teacher}', [PortalController::class, 'adminTeacherShow'])->name('admin.teachers.show');
+    Route::post('/admin/teachers/{teacher}/quick-update', [PortalController::class, 'adminTeacherQuickUpdate'])->name('admin.teachers.quick-update');
+    Route::post('/admin/teachers/{teacher}/update', [PortalController::class, 'adminTeacherUpdate'])->name('admin.teachers.update');
+    Route::post('/admin/teachers/{teacher}/classes', [PortalController::class, 'adminTeacherClassesUpdate'])->name('admin.teachers.classes.update');
     Route::get('/admin/timeslots/create', [PortalController::class, 'adminTimeslotCreate'])->name('admin.timeslots.create');
     Route::post('/admin/timeslots', [PortalController::class, 'adminTimeslotStore'])->name('admin.timeslots.store');
     Route::get('/admin/timeslots/{timeslot}/edit', [PortalController::class, 'adminTimeslotEdit'])->name('admin.timeslots.edit');

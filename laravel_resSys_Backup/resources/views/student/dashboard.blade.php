@@ -35,6 +35,10 @@
                             <span class="number">{{ $summary['count'] }}</span>
                             <span class="mini-label">Gebuchte Timeslots</span>
                         </article>
+                        <article class="stat-card">
+                            <span class="number">{{ $summary['assigned_teacher_count'] }}</span>
+                            <span class="mini-label">Lehrer deiner Klasse</span>
+                        </article>
                     </div>
                 </div>
 
@@ -49,6 +53,40 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <span class="eyebrow">Unterricht</span>
+                    <h2 class="panel-title">Diese Lehrer unterrichten dich</h2>
+                    <p class="panel-subtitle">
+                        @if($currentClass)
+                            Klasse {{ $currentClass }}
+                        @else
+                            Deine Klasse konnte noch nicht automatisch erkannt werden.
+                        @endif
+                    </p>
+                </div>
+
+                <a class="ghost-button" href="{{ route('student.teachers.index') }}">Alle Lehrer ansehen</a>
+            </div>
+
+            @if($assignedTeachers->isEmpty())
+                <p class="empty-copy">Aktuell ist noch kein Lehrerprofil deiner Klasse zugeordnet.</p>
+            @else
+                <div class="teacher-grid">
+                    @foreach($assignedTeachers as $teacher)
+                        <a class="tile" href="{{ route('student.teachers.show', $teacher['slug']) }}">
+                            <span class="tile-code">{{ $teacher['short'] }}</span>
+                            <span class="tile-title">{{ $teacher['name'] }}</span>
+                            <span class="status-chip {{ $teacher['free_slots'] > 0 ? 'is-free' : 'is-booked' }}">
+                                {{ $teacher['free_slots'] > 0 ? $teacher['free_slots'].' freie Slots' : 'Aktuell keine freien Slots' }}
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         </section>
     </div>
 @endsection

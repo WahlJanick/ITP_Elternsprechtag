@@ -44,24 +44,176 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Lehrer</span>
-                    <h2 class="panel-title">Detailansichten pro Lehrer</h2>
-                    <p class="panel-subtitle">
-                        Jeder Kasten oeffnet die Admin-Detailseite mit Filtern und Terminliste.
-                    </p>
+                    <span class="eyebrow">Lehrererstellung</span>
+                    <h2 class="panel-title">Lehrer und Standard-Timeslots anlegen</h2>
                 </div>
             </div>
 
-            <div class="teacher-grid">
-                @foreach($teachers as $teacher)
-                    <a class="tile" href="{{ route('admin.teachers.show', $teacher['slug']) }}">
-                        <span class="tile-code">{{ $teacher['short'] }}</span>
-                        <span class="tile-title">{{ $teacher['name'] }}</span>
-                        <span class="tile-meta">{{ $teacher['display_classes'] }}</span>
-                        <span class="status-chip is-booked">{{ $teacher['booked_slots'] }} gebucht</span>
-                    </a>
-                @endforeach
+            <form method="POST" action="{{ route('admin.teachers.accounts.store') }}" class="stack">
+                @csrf
+
+                <div class="stack">
+                    <div>
+                        <span class="eyebrow">E-Mails</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="teacher_emails">Lehrer-E-Mails</label>
+                        <input
+                            id="teacher_emails"
+                            type="text"
+                            name="teacher_emails"
+                            value="{{ old('teacher_emails', '') }}"
+                            placeholder="max.mustermann@schule.at, erika.muster@schule.at"
+                        />
+                    </div>
+                </div>
+
+                <div class="stack">
+                    <div>
+                        <span class="eyebrow">Klassen</span>
+                    </div>
+
+                    <div class="teacher-grid">
+                        @foreach($classOptions as $className)
+                            <label class="tile" style="cursor: pointer; min-height: 92px;">
+                                <span class="tile-code">{{ substr($className, 0, 2) }}</span>
+                                <span class="tile-title">{{ $className }}</span>
+                                <span class="status-chip {{ in_array($className, old('classes', []), true) ? 'is-booked' : 'is-free' }}">
+                                    <input
+                                        type="checkbox"
+                                        name="classes[]"
+                                        value="{{ $className }}"
+                                        {{ in_array($className, old('classes', []), true) ? 'checked' : '' }}
+                                        style="margin-right: 8px;"
+                                    />
+                                    {{ in_array($className, old('classes', []), true) ? 'Gewaehlt' : 'Waehlen' }}
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="field">
+                        <label for="additional_classes">Weitere Klassen</label>
+                        <input
+                            id="additional_classes"
+                            type="text"
+                            name="additional_classes"
+                            value="{{ old('additional_classes', '') }}"
+                            placeholder="z.B. 3AHIT, 4AHIT"
+                        />
+                    </div>
+                </div>
+
+                <div class="stack">
+                    <div>
+                        <span class="eyebrow">Timeslots</span>
+                    </div>
+
+                    <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <div class="field">
+                            <label for="timeslot_duration">Timeslot-Dauer in Minuten</label>
+                            <input
+                                id="timeslot_duration"
+                                type="number"
+                                name="timeslot_duration"
+                                min="5"
+                                step="5"
+                                value="{{ old('timeslot_duration', '') }}"
+                                placeholder="z.B. 10"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="timeslot_day">Datum des Elternsprechtags</label>
+                            <input
+                                id="timeslot_day"
+                                type="date"
+                                name="timeslot_day"
+                                value="{{ old('timeslot_day', '') }}"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="timeslot_start">Beginn</label>
+                            <input
+                                id="timeslot_start"
+                                type="time"
+                                name="timeslot_start"
+                                value="{{ old('timeslot_start', '') }}"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="timeslot_end">Ende</label>
+                            <input
+                                id="timeslot_end"
+                                type="time"
+                                name="timeslot_end"
+                                value="{{ old('timeslot_end', '') }}"
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="timeslot_room">Raum</label>
+                            <input
+                                id="timeslot_room"
+                                type="text"
+                                name="timeslot_room"
+                                value="{{ old('timeslot_room', '') }}"
+                                placeholder="z.B. B201"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="button-row">
+                        <button type="submit" class="button">Lehrer anlegen</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <span class="eyebrow">Zugaenge</span>
+                    <h2 class="panel-title">Angelegte Lehrerzugaenge</h2>
+                </div>
             </div>
+            @if($teacherAccounts->isNotEmpty())
+                <div class="list-stack">
+                    @foreach($teacherAccounts as $account)
+                        <article class="list-row">
+                            <div class="list-row-copy">
+                                <p class="list-row-title">{{ $account['name'] }}</p>
+                                <p class="meta-copy">{{ $account['email'] }}</p>
+                                <p class="meta-copy">{{ $account['teacher_name'] }}</p>
+                                <p class="meta-copy">{{ $account['display_classes'] }}</p>
+                            </div>
+
+                            <div class="list-row-actions">
+                                @if($account['teacher_slug'])
+                                    <a class="button" href="{{ route('admin.teachers.show', $account['teacher_slug']) }}">Bearbeiten</a>
+                                @else
+                                    <form method="POST" action="{{ route('admin.teachers.accounts.create-profile', $account['user_id']) }}">
+                                        @csrf
+                                        <button type="submit" class="button">Profil anlegen</button>
+                                    </form>
+                                @endif
+
+                                <form method="POST" action="{{ route('admin.teachers.accounts.delete', $account['user_id']) }}">
+                                    @csrf
+                                    <button type="submit" class="danger-button">Loeschen</button>
+                                </form>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <p class="empty-copy">Noch keine Lehrerzugaenge angelegt.</p>
+            @endif
         </section>
     </div>
 @endsection

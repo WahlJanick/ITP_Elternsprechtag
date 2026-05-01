@@ -5,32 +5,46 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Timeslot;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Throwable;
 
 class PortalController extends Controller
 {
+    private const SCHOOL_CLASSES = [
+        '1AFME', '1AHET', '1AHIT', '1AHMBA', '1AHWIM', '1BHMBA', '1BHWIM',
+        '2AAME', '2AFME', '2AHET', '2AHIT', '2AHMBA', '2AHWIM', '2BHMBA', '2BHWIM',
+        '3AAME', '3AFME', '3AHET', '3AHIT', '3AHMBA', '3AHWIM', '3AKME', '3BHMBA', '3BHWIM',
+        '4AAME', '4AFME', '4AHET', '4AHIT', '4AHMBA', '4AHWIM', '4AKME', '4BHMBA', '4BHWIM',
+        '5AAME', '5AHET', '5AHIT', '5AHMBA', '5AHWIM', '5AKME', '5BHMBA', '5BHWIM',
+        '6AAME', '6AKME',
+    ];
+
     public function studentDashboard()
     {
         $this->ensureStudent();
 
-        $teachers = $this->availableTeachersForCurrentStudent();
+        $assignedTeachers = $this->teachersForCurrentStudent();
+        $teachers = $assignedTeachers->filter(fn (array $teacher) => $teacher['free_slots'] > 0)->values();
         $bookings = $this->currentStudentBookings();
 
         $summary = [
             'count' => $bookings->count(),
             'teacher_names' => $bookings->pluck('teacher_name')->unique()->implode(' / '),
+            'assigned_teacher_count' => $assignedTeachers->count(),
             'teacher_count' => $teachers->count(),
             'free_slot_count' => $teachers->sum('free_slots'),
         ];
 
         return view('student.dashboard', [
             'summary' => $summary,
-            'highlights' => $teachers->take(6),
+            'assignedTeachers' => $assignedTeachers->take(6),
             'currentClass' => $this->currentStudentClass(),
         ]);
     }
@@ -40,7 +54,7 @@ class PortalController extends Controller
         $this->ensureStudent();
 
         return view('student.teachers', [
-            'teachers' => $this->availableTeachersForCurrentStudent(),
+            'teachers' => $this->teachersForCurrentStudent(),
             'currentClass' => $this->currentStudentClass(),
         ]);
     }
@@ -49,7 +63,7 @@ class PortalController extends Controller
     {
         $this->ensureStudent();
 
-        $teachers = $this->availableTeachersForCurrentStudent();
+        $teachers = $this->teachersForCurrentStudent();
         $selectedTeacher = $teachers->firstWhere('slug', $teacher)
             ?? $this->allTeacherProfiles()->firstWhere('slug', $teacher);
 
@@ -230,7 +244,147 @@ class PortalController extends Controller
         return view('admin.dashboard', [
             'stats' => $stats,
             'teachers' => $teachers,
+            'teacherAccounts' => $this->teacherAccessAccounts(),
+            'classOptions' => collect(self::SCHOOL_CLASSES),
         ]);
+    }
+
+    public function adminTeacherAccountsStore(Request $request): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $validated = $request->validate([
+            'teacher_emails' => 'required|string|max:5000',
+            'timeslot_duration' => 'required|integer|min:5|max:120',
+            'timeslot_day' => 'required|date',
+            'timeslot_start' => 'required|date_format:H:i',
+            'timeslot_end' => 'required|date_format:H:i|after:timeslot_start',
+            'timeslot_room' => 'required|string|max:255',
+            'classes' => 'nullable|array',
+            'classes.*' => 'string|max:20',
+            'additional_classes' => 'nullable|string|max:255',
+        ]);
+
+        $emails = $this->extractEmailAddresses($validated['teacher_emails']);
+
+        if ($emails === []) {
+            return redirect()
+                ->route('admin.dashboard')
+                ->with('error', 'Bitte gib mindestens eine gueltige E-Mail-Adresse ein.');
+        }
+
+        $createdCount = 0;
+        $updatedCount = 0;
+        $normalizedClasses = $this->normalizeClassNames(array_merge(
+            $validated['classes'] ?? [],
+            $this->extractAdditionalClasses($validated['additional_classes'] ?? '')
+        ));
+
+        foreach ($emails as $email) {
+            $user = User::firstOrNew(['email' => $email]);
+            $alreadyExisted = $user->exists;
+            $derivedName = $this->placeholderNameFromEmail($email);
+            [$firstName, $lastName] = $this->splitName($derivedName);
+
+            if (! $alreadyExisted || blank($user->password)) {
+                $user->password = Hash::make(Str::random(32));
+            }
+
+            if (blank($user->name) || $user->name === $user->email) {
+                $user->name = $derivedName;
+            }
+
+            $user->is_teacher = true;
+            $teacherWasCreated = false;
+
+            if ($user->teacher_id === null) {
+                $teacher = Teacher::create([
+                    'teacher_id' => $this->nextTeacherId(),
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'kuerzel' => $this->shortCode($derivedName),
+                    'classes' => $normalizedClasses,
+                ]);
+
+                $user->teacher_id = $teacher->teacher_id;
+                $teacherWasCreated = true;
+            }
+
+            if ($user->teacher_id !== null) {
+                Teacher::query()
+                    ->where('teacher_id', $user->teacher_id)
+                    ->update(['classes' => $normalizedClasses]);
+            }
+
+            $user->save();
+
+            if ($teacherWasCreated) {
+                $this->createTimeslotsForTeacher(
+                    $user->teacher_id,
+                    $validated['timeslot_day'],
+                    $validated['timeslot_start'],
+                    $validated['timeslot_end'],
+                    (int) $validated['timeslot_duration'],
+                    $validated['timeslot_room']
+                );
+            }
+
+            if ($alreadyExisted) {
+                $updatedCount++;
+            } else {
+                $createdCount++;
+            }
+        }
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', "Lehrerzugaenge gespeichert. Neu: {$createdCount}, aktualisiert: {$updatedCount}.");
+    }
+
+    public function adminTeacherAccountCreateProfile(User $user): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        abort_unless($user->is_teacher, 404);
+
+        if ($user->teacher_id === null) {
+            $derivedName = blank($user->name) ? $this->placeholderNameFromEmail($user->email) : $user->name;
+            [$firstName, $lastName] = $this->splitName($derivedName);
+
+            $teacher = Teacher::create([
+                'teacher_id' => $this->nextTeacherId(),
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'kuerzel' => $this->shortCode($derivedName),
+                'classes' => [],
+            ]);
+
+            $user->teacher_id = $teacher->teacher_id;
+            $user->save();
+        }
+
+        $teacher = Teacher::findOrFail($user->teacher_id);
+
+        return redirect()
+            ->route('admin.teachers.show', Str::slug($teacher->full_name.'-'.$teacher->teacher_id))
+            ->with('success', 'Lehrerprofil wurde angelegt.');
+    }
+
+    public function adminTeacherAccountDelete(User $user): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        abort_unless($user->is_teacher, 404);
+
+        if ($user->teacher_id !== null) {
+            Teacher::query()->where('teacher_id', $user->teacher_id)->delete();
+        }
+
+        $user->delete();
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', 'Lehrerzugang wurde geloescht.');
     }
 
     public function adminTeacherShow(string $teacher)
@@ -244,12 +398,100 @@ class PortalController extends Controller
         return view('admin.teacher-show', [
             'teacher' => $selectedTeacher,
             'appointments' => $this->adminAppointmentsForTeacher($selectedTeacher),
+            'classOptions' => $this->availableClassOptions($selectedTeacher),
             'filters' => [
                 'classes' => ['Alle Klassen', '1AHIT', '2AHIT', '3AHIT', '4AHIT', '5AHIT', '3AHMBA', '4AHMBA'],
                 'rooms' => ['Alle Raeume', 'B201', 'B203', 'A104', 'Lab 2', '3AHMBA', '4AHIT'],
                 'times' => ['17:00', '17:10', '17:20', '17:30', '17:40', '17:50'],
             ],
         ]);
+    }
+
+    public function adminTeacherUpdate(Request $request, string $teacher): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $selectedTeacher = $this->allTeacherProfiles()->firstWhere('slug', $teacher);
+
+        abort_if(! $selectedTeacher, 404);
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'kuerzel' => 'nullable|string|max:20',
+        ]);
+
+        $teacherModel = Teacher::findOrFail($selectedTeacher['reference_id']);
+        $teacherModel->update([
+            'first_name' => trim($validated['first_name']),
+            'last_name' => trim($validated['last_name']),
+            'kuerzel' => trim((string) ($validated['kuerzel'] ?? '')) ?: null,
+        ]);
+
+        $newSlug = Str::slug($teacherModel->full_name.'-'.$teacherModel->teacher_id);
+
+        return redirect()
+            ->route('admin.teachers.show', $newSlug)
+            ->with('success', 'Lehrerdaten wurden aktualisiert.');
+    }
+
+    public function adminTeacherQuickUpdate(Request $request, string $teacher): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $selectedTeacher = $this->allTeacherProfiles()->firstWhere('slug', $teacher);
+
+        abort_if(! $selectedTeacher, 404);
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'kuerzel' => 'nullable|string|max:20',
+            'class_list' => 'nullable|string|max:1000',
+        ]);
+
+        $teacherModel = Teacher::findOrFail($selectedTeacher['reference_id']);
+        $teacherModel->update([
+            'first_name' => trim($validated['first_name']),
+            'last_name' => trim($validated['last_name']),
+            'kuerzel' => trim((string) ($validated['kuerzel'] ?? '')) ?: null,
+            'classes' => $this->normalizeClassNames(
+                $this->extractAdditionalClasses($validated['class_list'] ?? '')
+            ),
+        ]);
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', "Lehrer {$teacherModel->full_name} wurde aktualisiert.");
+    }
+
+    public function adminTeacherClassesUpdate(Request $request, string $teacher): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $selectedTeacher = $this->allTeacherProfiles()->firstWhere('slug', $teacher);
+
+        abort_if(! $selectedTeacher, 404);
+
+        $validated = $request->validate([
+            'classes' => 'nullable|array',
+            'classes.*' => 'string|max:20',
+            'additional_classes' => 'nullable|string|max:255',
+        ]);
+
+        $teacherModel = Teacher::findOrFail($selectedTeacher['reference_id']);
+        $normalizedClasses = $this->normalizeClassNames(array_merge(
+            $validated['classes'] ?? [],
+            $this->extractAdditionalClasses($validated['additional_classes'] ?? '')
+        ));
+
+        $teacherModel->update([
+            'classes' => $normalizedClasses,
+        ]);
+
+        return redirect()
+            ->route('admin.teachers.show', Str::slug($teacherModel->full_name.'-'.$teacherModel->teacher_id))
+            ->with('success', 'Klassen wurden dem Lehrer zugeteilt.');
     }
 
     public function adminReleaseSlot(Timeslot $timeslot): RedirectResponse
@@ -280,6 +522,9 @@ class PortalController extends Controller
                 return [
                     'slug' => Str::slug($teacher->full_name.'-'.$teacher->teacher_id),
                     'name' => $teacher->full_name,
+                    'first_name' => $teacher->first_name,
+                    'last_name' => $teacher->last_name,
+                    'kuerzel' => $teacher->kuerzel,
                     'short' => $teacher->kuerzel ?: $this->shortCode($teacher->full_name),
                     'classes' => $teacher->classes ?? [],
                     'display_classes' => $teacher->classes ? implode(' / ', $teacher->classes) : 'Alle Klassen',
@@ -293,21 +538,17 @@ class PortalController extends Controller
 
     private function availableTeachersForCurrentStudent(): Collection
     {
+        return $this->teachersForCurrentStudent()
+            ->filter(fn (array $teacher) => $teacher['free_slots'] > 0)
+            ->values();
+    }
+
+    private function teachersForCurrentStudent(): Collection
+    {
         $studentClass = $this->currentStudentClass();
 
         return $this->allTeacherProfiles()
-            ->filter(function (array $teacher) use ($studentClass) {
-                if ($teacher['free_slots'] < 1) {
-                    return false;
-                }
-
-                if ($studentClass === null) {
-                    return true;
-                }
-
-                return $teacher['classes'] === []
-                    || in_array($studentClass, $teacher['classes'], true);
-            })
+            ->filter(fn (array $teacher) => $this->teacherMatchesStudentClass($teacher, $studentClass))
             ->values();
     }
 
@@ -406,6 +647,139 @@ class PortalController extends Controller
         $end = min($allTeachers->count() - 1, $currentIndex + 2);
 
         return $allTeachers->slice($start, $end - $start + 1)->values();
+    }
+
+    private function teacherMatchesStudentClass(array $teacher, ?string $studentClass): bool
+    {
+        if ($studentClass === null) {
+            return true;
+        }
+
+        return $teacher['classes'] === []
+            || in_array($studentClass, $teacher['classes'], true);
+    }
+
+    private function availableClassOptions(array $teacher): Collection
+    {
+        return collect(self::SCHOOL_CLASSES)
+            ->merge($teacher['classes'])
+            ->map(fn (string $className) => $this->normalizeSingleClassName($className))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+    }
+
+    private function teacherAccessAccounts(): Collection
+    {
+        return User::query()
+            ->where('is_teacher', true)
+            ->orderBy('name')
+            ->orderBy('email')
+            ->get()
+            ->map(function (User $user) {
+                $teacher = $user->teacher_id ? Teacher::find($user->teacher_id) : null;
+
+                return [
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'teacher_name' => $teacher?->full_name,
+                    'teacher_slug' => $teacher ? Str::slug($teacher->full_name.'-'.$teacher->teacher_id) : null,
+                    'display_classes' => $teacher?->classes ? implode(' / ', $teacher->classes) : '-',
+                ];
+            });
+    }
+
+    private function extractAdditionalClasses(string $value): array
+    {
+        return preg_split('/[\s,;]+/', trim($value)) ?: [];
+    }
+
+    private function normalizeClassNames(array $classes): array
+    {
+        return collect($classes)
+            ->map(fn ($className) => $this->normalizeSingleClassName((string) $className))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    private function normalizeSingleClassName(string $className): string
+    {
+        return preg_replace('/\s+/', '', Str::upper(trim($className))) ?? '';
+    }
+
+    private function extractEmailAddresses(string $value): array
+    {
+        return collect(preg_split('/[\s,;]+/', trim($value)) ?: [])
+            ->map(fn (string $email) => Str::lower(trim($email)))
+            ->filter(fn (string $email) => filter_var($email, FILTER_VALIDATE_EMAIL) !== false)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function placeholderNameFromEmail(string $email): string
+    {
+        $localPart = Str::before($email, '@');
+
+        $normalized = Str::of($localPart)
+            ->replace(['.', '_', '-'], ' ')
+            ->replaceMatches('/\d+/', ' ')
+            ->replaceMatches('/\s+/', ' ')
+            ->trim()
+            ->title()
+            ->value();
+
+        return $normalized !== '' ? $normalized : $email;
+    }
+
+    private function nextTeacherId(): int
+    {
+        return ((int) Teacher::query()->max('teacher_id')) + 1;
+    }
+
+    private function nextTimeslotId(): int
+    {
+        return ((int) Timeslot::query()->max('id')) + 1;
+    }
+
+    private function createTimeslotsForTeacher(
+        int $teacherId,
+        string $day,
+        string $startTime,
+        string $endTime,
+        int $durationInMinutes,
+        string $room
+    ): void {
+        $current = Carbon::parse("{$day} {$startTime}");
+        $end = Carbon::parse("{$day} {$endTime}");
+        $timeslots = [];
+        $nextId = $this->nextTimeslotId();
+
+        while ($current->copy()->addMinutes($durationInMinutes)->lte($end)) {
+            $slotEnd = $current->copy()->addMinutes($durationInMinutes);
+
+            $timeslots[] = [
+                'id' => $nextId++,
+                'teacher_id' => $teacherId,
+                'student_id' => null,
+                'starts_at' => $current->toDateTimeString(),
+                'ends_at' => $slotEnd->toDateTimeString(),
+                'room' => $room,
+                'is_reserved' => false,
+                'day' => $current->toDateString(),
+            ];
+
+            $current = $slotEnd;
+        }
+
+        if ($timeslots !== []) {
+            Timeslot::insert($timeslots);
+        }
     }
 
     private function ensureStudentRecord(): Student

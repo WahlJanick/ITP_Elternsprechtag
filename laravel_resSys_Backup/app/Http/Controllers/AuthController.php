@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str as SupportStr;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
@@ -51,17 +49,19 @@ class AuthController extends Controller
 
         $jobTitle = (string) ($azureUser->user['jobTitle'] ?? '');
         $normalizedJobTitle = Str::lower($jobTitle);
-        $teacher = $this->resolveTeacherFromAzureName($azureUser->getName() ?: '');
+        $existingUser = User::query()->where('email', $email)->first();
 
         $isAdmin = $this->isAdminEmail($email)
+            || (bool) $existingUser?->is_admin
             || Str::contains($normalizedJobTitle, ['admin', 'administrator']);
 
         $isTeacher = ! $isAdmin && (
-            $teacher !== null
+            (bool) $existingUser?->is_teacher
+            || (bool) $existingUser?->teacher_id
             || Str::contains($normalizedJobTitle, ['teacher', 'lehrer'])
         );
 
-        $user = User::firstOrNew(['email' => $email]);
+        $user = $existingUser ?? User::firstOrNew(['email' => $email]);
 
         if (! $user->exists || blank($user->password)) {
             $user->password = Hash::make(Str::random(32));
@@ -72,7 +72,7 @@ class AuthController extends Controller
             'klasse' => $jobTitle ?: null,
             'is_teacher' => $isTeacher,
             'is_admin' => $isAdmin,
-            'teacher_id' => $teacher?->teacher_id,
+            'teacher_id' => $user->teacher_id,
         ]);
 
         $user->save();
@@ -94,33 +94,5 @@ class AuthController extends Controller
             ->filter();
 
         return $adminEmails->contains(Str::lower($email));
-    }
-
-    private function resolveTeacherFromAzureName(string $name): ?Teacher
-    {
-        $normalizedName = $this->normalizeComparableValue($name);
-
-        if ($normalizedName === '') {
-            return null;
-        }
-
-        return Teacher::query()
-            ->get()
-            ->first(function (Teacher $teacher) use ($normalizedName) {
-                $fullName = $this->normalizeComparableValue($teacher->full_name);
-                $reverseName = $this->normalizeComparableValue("{$teacher->last_name} {$teacher->first_name}");
-
-                return $normalizedName === $fullName || $normalizedName === $reverseName;
-            });
-    }
-
-    private function normalizeComparableValue(string $value): string
-    {
-        return SupportStr::of($value)
-            ->ascii()
-            ->lower()
-            ->replaceMatches('/[^a-z0-9]+/', ' ')
-            ->trim()
-            ->value();
     }
 }
