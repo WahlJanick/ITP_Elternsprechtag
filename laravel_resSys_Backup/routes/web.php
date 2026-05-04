@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/dashboard', [PortalController::class, 'teacherDashboard'])->name('teacher.dashboard');
 
     Route::get('/admin', [PortalController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::post('/admin/webuntis/sync', [PortalController::class, 'adminSyncWebUntis'])->name('admin.webuntis.sync');
     Route::get('/admin/teachers/{teacher}', [PortalController::class, 'adminTeacherShow'])->name('admin.teachers.show');
     Route::get('/admin/timeslots/create', [PortalController::class, 'adminTimeslotCreate'])->name('admin.timeslots.create');
     Route::post('/admin/timeslots', [PortalController::class, 'adminTimeslotStore'])->name('admin.timeslots.store');

@@ -9,8 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_admin')->default(false)->after('is_teacher');
-            $table->integer('teacher_id')->nullable()->after('is_admin');
+            if (! Schema::hasColumn('users', 'is_admin')) {
+                $table->boolean('is_admin')->default(false)->after('is_teacher');
+            }
+
+            if (! Schema::hasColumn('users', 'teacher_id')) {
+                $table->integer('teacher_id')->nullable()->after('is_admin');
+            }
         });
     }
 

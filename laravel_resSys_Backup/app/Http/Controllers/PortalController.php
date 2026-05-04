@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Timeslot;
+use App\Services\WebUntisTeacherSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -264,6 +265,25 @@ class PortalController extends Controller
         return redirect()
             ->back()
             ->with('success', 'Timeslot wurde freigegeben.');
+    }
+
+    public function adminSyncWebUntis(WebUntisTeacherSyncService $syncService): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        try {
+            $result = $syncService->sync();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('admin.dashboard')
+                ->with('error', 'WebUntis-Sync fehlgeschlagen: '.$exception->getMessage());
+        }
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', "WebUntis-Sync erfolgreich: {$result['teachers']} Lehrer und {$result['class_assignments']} Klassenzuordnungen aktualisiert.");
     }
 
     private function allTeacherProfiles(): Collection

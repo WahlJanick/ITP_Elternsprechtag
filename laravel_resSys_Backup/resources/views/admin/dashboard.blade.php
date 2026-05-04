@@ -19,6 +19,10 @@
                         Die Admin-Variante fasst alle wichtigen Kennzahlen zusammen und fuehrt in die Detailseiten.
                     </p>
                 </div>
+                <form method="post" action="{{ route('admin.webuntis.sync') }}">
+                    @csrf
+                    <button class="button" type="submit">WebUntis syncen</button>
+                </form>
             </div>
 
             <div class="stats-grid">
