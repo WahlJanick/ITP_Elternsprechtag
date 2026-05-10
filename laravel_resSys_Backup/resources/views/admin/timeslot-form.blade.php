@@ -1,11 +1,10 @@
-cat > resources/views/admin/timeslot-form.blade.php << 'EOF'
 @extends('layouts.portal', [
-    'pageTitle' => 'Timeslot bearbeiten',
+    'pageTitle' => 'Termin bearbeiten',
     'roleTitle' => 'Admin-Ansicht',
     'theme' => 'admin',
     'homeRoute' => 'admin.dashboard',
     'navLinks' => [
-        ['label' => 'Uebersicht', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
+        ['label' => 'Übersicht', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
     ],
 ])
 
@@ -29,13 +28,6 @@ cat > resources/views/admin/timeslot-form.blade.php << 'EOF'
                             Neuer Termin
                         @endif
                     </h2>
-                    <p class="panel-subtitle">
-                        @if($isEdit)
-                            Bearbeiten Sie die Details dieses Termins.
-                        @else
-                            Erstellen Sie einen neuen Termin.
-                        @endif
-                    </p>
                 </div>
             </div>
 
@@ -55,7 +47,7 @@ cat > resources/views/admin/timeslot-form.blade.php << 'EOF'
                 </div>
 
                 <div class="form-group">
-                    <label for="student_id">Student (optional)</label>
+                    <label for="student_id">Schüler (optional)</label>
                     <select id="student_id" name="student_id">
                         <option value="">Keiner</option>
                         @foreach($students as $student)
@@ -67,8 +59,8 @@ cat > resources/views/admin/timeslot-form.blade.php << 'EOF'
                 </div>
 
                 <div class="form-group">
-                    <label for="day">Datum *</label>
-                    <input type="date" id="day" name="day" value="@if($isEdit && $timeslot){{ $timeslot->day }}@else{{ date('Y-m-d') }}@endif" required />
+                    <label for="parent_day">Datum</label>
+                    <input type="text" id="parent_day" value="{{ $parentDayLabel ?? '--/--/----' }}" readonly />
                 </div>
 
                 <div class="form-row">
@@ -85,7 +77,14 @@ cat > resources/views/admin/timeslot-form.blade.php << 'EOF'
 
                 <div class="form-group">
                     <label for="room">Raum *</label>
-                    <input type="text" id="room" name="room" value="@if($isEdit && $timeslot){{ $timeslot->room }}@else{{ 'B201' }}@endif" required placeholder="z.B. B201, A104" />
+                    <input type="text" id="room" name="room" list="room-options" value="@if($isEdit && $timeslot){{ $timeslot->room }}@else{{ 'B201' }}@endif" required placeholder="z.B. B201, A104" />
+                    @if(isset($rooms) && $rooms->isNotEmpty())
+                        <datalist id="room-options">
+                            @foreach($rooms as $room)
+                                <option value="{{ $room->name }}"></option>
+                            @endforeach
+                        </datalist>
+                    @endif
                 </div>
 
                 <div class="form-group checkbox-group">

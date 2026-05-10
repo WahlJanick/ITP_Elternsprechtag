@@ -1,10 +1,10 @@
 @extends('layouts.portal', [
-    'pageTitle' => 'Schueler Gebuchte Timeslots',
-    'roleTitle' => 'Schueler-Ansicht',
+    'pageTitle' => 'Schüler Gebuchte Termine',
+    'roleTitle' => 'Schüler-Ansicht',
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
-        ['label' => 'Home', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Start', 'route' => 'student.booking', 'active' => 'student.booking'],
         ['label' => 'Buchen', 'route' => 'student.teachers.index', 'active' => 'student.teachers.*'],
     ],
 ])
@@ -15,17 +15,17 @@
             <div class="panel-header">
                 <div>
                     <span class="eyebrow">Meine Termine</span>
-                    <h2 class="panel-title">Gebuchte Timeslots</h2>
+                    <h2 class="panel-title">Gebuchte Termine</h2>
                     <p class="panel-subtitle">
-                        Hier sieht der Schueler Lehrer, Raum und Uhrzeit und kann Termine wieder stornieren.
+                        Hier sieht der Schüler Lehrer, Raum und Uhrzeit und kann Termine wieder stornieren.
                     </p>
                 </div>
 
-                <button type="button" class="print-button" onclick="window.print()">Timeslots drucken</button>
+                <button type="button" class="print-button" onclick="window.print()">Termine drucken</button>
             </div>
 
             @if($bookings->isEmpty())
-                <p class="empty-copy">Du hast aktuell noch keine gebuchten Timeslots.</p>
+                <p class="empty-copy">Du hast aktuell noch keine gebuchten Termine.</p>
             @else
                 <div class="list-stack">
                     @foreach($bookings as $booking)

@@ -1,6 +1,6 @@
 @extends('layouts.portal', [
-    'pageTitle' => 'Schueler Start',
-    'roleTitle' => 'Schueler-Ansicht',
+    'pageTitle' => 'Schüler-Start',
+    'roleTitle' => 'Schüler-Ansicht',
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
@@ -15,7 +15,7 @@
             <div class="panel-header">
                 <div>
                     <span class="eyebrow">Startseite</span>
-                    <h2 class="hero-title">Gebuchte Timeslots</h2>
+                    <h2 class="hero-title">Gebuchte Termine</h2>
                     <p class="hero-copy">
                         Dein Schnellzugriff auf gebuchte Termine.
                     </p>
@@ -29,11 +29,11 @@
 
             <div class="hero-grid">
                 <div class="panel panel-strong">
-                    <span class="eyebrow">Uebersicht</span>
+                    <span class="eyebrow">Übersicht</span>
                     <div class="summary-grid">
                         <article class="stat-card">
                             <span class="number">{{ $summary['count'] }}</span>
-                            <span class="mini-label">Gebuchte Timeslots</span>
+                            <span class="mini-label">Gebuchte Termine</span>
                         </article>
                         <article class="stat-card">
                             <span class="number">{{ $summary['assigned_teacher_count'] }}</span>
@@ -49,7 +49,7 @@
                     </p>
                     <div class="button-row" style="margin-top: 16px;">
                         <span class="badge">Max. 1 Termin pro Lehrer</span>
-                        <span class="badge">Azure Login aktiv</span>
+                        <span class="badge">Azure-Login aktiv</span>
                     </div>
                 </div>
             </div>
@@ -81,7 +81,7 @@
                             <span class="tile-code">{{ $teacher['short'] }}</span>
                             <span class="tile-title">{{ $teacher['name'] }}</span>
                             <span class="status-chip {{ $teacher['free_slots'] > 0 ? 'is-free' : 'is-booked' }}">
-                                {{ $teacher['free_slots'] > 0 ? $teacher['free_slots'].' freie Slots' : 'Aktuell keine freien Slots' }}
+                                {{ $teacher['free_slots'] > 0 ? $teacher['free_slots'].' freie Termine' : 'Aktuell keine freien Termine' }}
                             </span>
                         </a>
                     @endforeach

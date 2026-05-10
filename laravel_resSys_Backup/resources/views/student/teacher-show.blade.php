@@ -1,10 +1,10 @@
 @extends('layouts.portal', [
-    'pageTitle' => 'Schueler Lehrer-Detail',
-    'roleTitle' => 'Schueler-Ansicht',
+    'pageTitle' => 'Schüler-Lehrer-Detail',
+    'roleTitle' => 'Schüler-Ansicht',
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
-        ['label' => 'Home', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Start', 'route' => 'student.booking', 'active' => 'student.booking'],
         ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings'],
     ],
 ])
@@ -17,20 +17,20 @@
                     <span class="eyebrow">Lehrer-Detail</span>
                     <h2 class="panel-title">{{ $teacher['name'] }} ({{ $teacher['short'] }})</h2>
                     <p class="panel-subtitle">
-                        Verfuegbare Timeslots von 17:00 - 19:00 Uhr. Ein Schueler kann maximal einen Termin pro Lehrer buchen.
+                        Verfügbare Termine von 17:00 - 19:00 Uhr. Ein Schüler kann maximal einen Termin pro Lehrer buchen.
                     </p>
                 </div>
 
-                <a class="close-button" href="{{ route('student.teachers.index') }}" aria-label="Zurueck">&times;</a>
+                <a class="close-button" href="{{ route('student.teachers.index') }}" aria-label="Zurück">&times;</a>
             </div>
 
             <div class="button-row" style="margin-bottom: 16px;">
                 <span class="badge">Raum: {{ $teacherRoom }}</span>
-                <span class="status-chip is-free">{{ $teacher['free_slots'] }} freie Slots</span>
+                <span class="status-chip is-free">{{ $teacher['free_slots'] }} freie Termine</span>
             </div>
 
             @if($freeSlots->isEmpty())
-                <p class="empty-copy">Dieser Lehrer hat derzeit keine freien Timeslots.</p>
+                <p class="empty-copy">Dieser Lehrer hat derzeit keine freien Termine.</p>
             @else
                 <form method="POST" action="{{ route('student.timeslots.book') }}" id="booking-form">
                     @csrf
@@ -47,7 +47,7 @@
                     </div>
 
                     <div class="inline-actions" style="margin-top: 24px; justify-content: space-between;">
-                        <span class="hint">Wichtig: Max. 1 Timeslot von einem Lehrer pro Schueler.</span>
+                        <span class="hint">Wichtig: Max. 1 Termin je Lehrer und Schüler.</span>
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <span class="status-chip {{ $alreadyBooked ? 'is-booked' : 'is-free' }}">
                                 {{ $alreadyBooked ? 'Bereits ein Termin vorhanden' : 'Direkt buchbar' }}
@@ -65,7 +65,7 @@
             <div class="panel-header">
                 <div>
                     <span class="eyebrow">Navigation</span>
-                    <h2 class="panel-title">Vorherige und naechste Lehrer</h2>
+                    <h2 class="panel-title">Vorherige und nächste Lehrer</h2>
                 </div>
             </div>
 

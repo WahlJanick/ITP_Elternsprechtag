@@ -54,9 +54,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/student/bookings/{timeslot}/cancel', [PortalController::class, 'cancelStudentBooking'])->name('student.bookings.cancel');
 
     Route::get('/teacher/dashboard', [PortalController::class, 'teacherDashboard'])->name('teacher.dashboard');
+    Route::post('/teacher/timeslot-duration', [PortalController::class, 'teacherTimeslotDurationUpdate'])->name('teacher.timeslot-duration.update');
 
     Route::get('/admin', [PortalController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::post('/admin/parent-day', [PortalController::class, 'adminParentDayUpdate'])->name('admin.parent-day.update');
+    Route::post('/admin/classes', [PortalController::class, 'adminClassesStore'])->name('admin.classes.store');
+    Route::post('/admin/classes/{schoolClass}/update', [PortalController::class, 'adminClassesUpdate'])->name('admin.classes.update');
+    Route::post('/admin/classes/{schoolClass}/delete', [PortalController::class, 'adminClassesDelete'])->name('admin.classes.delete');
+    Route::post('/admin/rooms', [PortalController::class, 'adminRoomsStore'])->name('admin.rooms.store');
+    Route::post('/admin/rooms/{room}/update', [PortalController::class, 'adminRoomsUpdate'])->name('admin.rooms.update');
+    Route::post('/admin/rooms/{room}/delete', [PortalController::class, 'adminRoomsDelete'])->name('admin.rooms.delete');
     Route::post('/admin/teachers/accounts', [PortalController::class, 'adminTeacherAccountsStore'])->name('admin.teachers.accounts.store');
+    Route::post('/admin/teachers/import', [PortalController::class, 'adminTeacherImport'])->name('admin.teachers.import');
     Route::post('/admin/teachers/accounts/{user}/create-profile', [PortalController::class, 'adminTeacherAccountCreateProfile'])->name('admin.teachers.accounts.create-profile');
     Route::post('/admin/teachers/accounts/{user}/delete', [PortalController::class, 'adminTeacherAccountDelete'])->name('admin.teachers.accounts.delete');
     Route::get('/admin/teachers/{teacher}', [PortalController::class, 'adminTeacherShow'])->name('admin.teachers.show');

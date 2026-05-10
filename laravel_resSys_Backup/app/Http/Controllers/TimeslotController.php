@@ -23,7 +23,6 @@ class TimeslotController extends Controller
             'ends_at' => 'required|date|after:starts_at',
             'room' => 'required|string|max:255',
             'is_reserved' => 'boolean',
-            'day' => 'required|date',
         ]);
 
         $timeslot = Timeslot::create($validated);
@@ -44,7 +43,6 @@ class TimeslotController extends Controller
             'ends_at' => 'date|after:starts_at',
             'room' => 'string|max:255',
             'is_reserved' => 'boolean',
-            'day' => 'date',
         ]);
 
         $timeslot->update($validated);
@@ -54,6 +52,6 @@ class TimeslotController extends Controller
     public function destroy(Timeslot $timeslot): JsonResponse
     {
         $timeslot->delete();
-        return response()->json(['message' => 'Timeslot deleted'], 204);
+        return response()->json(['message' => 'Termin gelöscht'], 204);
     }
 }

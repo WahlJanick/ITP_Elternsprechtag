@@ -1,22 +1,52 @@
 @extends('layouts.portal', [
-    'pageTitle' => 'Lehrer Dashboard',
+    'pageTitle' => 'Lehrer-Übersicht',
     'roleTitle' => 'Lehrer-Ansicht',
     'theme' => 'teacher',
     'homeRoute' => 'teacher.dashboard',
     'navLinks' => [
-        ['label' => 'Timeslots', 'route' => 'teacher.dashboard', 'active' => 'teacher.dashboard'],
+        ['label' => 'Termine', 'route' => 'teacher.dashboard', 'active' => 'teacher.dashboard'],
     ],
 ])
 
 @section('content')
     <div class="stack">
+        @if($teacher)
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="eyebrow">Einstellungen</span>
+                        <h2 class="panel-title">Termindauer</h2>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ route('teacher.timeslot-duration.update') }}" class="stack">
+                    @csrf
+                    <div class="field field-inline">
+                        <label for="timeslot_duration">Dauer in Minuten</label>
+                        <div class="field-inline-row">
+                            <input
+                                id="timeslot_duration"
+                                type="number"
+                                name="timeslot_duration"
+                                min="5"
+                                step="5"
+                                value="{{ old('timeslot_duration', $teacher->timeslot_duration ?? 10) }}"
+                                required
+                            />
+                            <button type="submit" class="button">Speichern</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        @endif
+
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <span class="eyebrow">Lehreransicht</span>
-                    <h2 class="panel-title">Gebuchte Timeslots</h2>
+                    <h2 class="panel-title">Gebuchte Termine</h2>
                     <p class="panel-subtitle">
-                        Lehrer sehen hier alle fuer sie angelegten Termine inklusive Schueler, Klasse, Raum und Zeit.
+                        Lehrer sehen hier alle für sie angelegten Termine inklusive Schüler, Klasse, Raum und Zeit.
                     </p>
                     @if($teacher)
                         <div class="button-row" style="margin-top: 12px;">
@@ -28,7 +58,7 @@
                     @endif
                 </div>
 
-                <button type="button" class="print-button" onclick="window.print()">Timeslots drucken</button>
+                <button type="button" class="print-button" onclick="window.print()">Termine drucken</button>
             </div>
 
             @if(! $hasTeacherMapping)
@@ -37,7 +67,7 @@
                     siehst du hier nur deine eigenen Timeslots.
                 </p>
             @elseif($appointments->isEmpty())
-                <p class="empty-copy">Fuer diesen Lehrer wurden noch keine Timeslots erzeugt.</p>
+                <p class="empty-copy">Für diesen Lehrer wurden noch keine Termine angelegt.</p>
             @else
                 <div class="list-stack">
                     @foreach($appointments as $appointment)

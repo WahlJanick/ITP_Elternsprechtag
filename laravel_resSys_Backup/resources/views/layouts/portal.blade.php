@@ -1,5 +1,5 @@
 @php
-    $displayName = auth()->user()?->name ?? 'Portal User';
+    $displayName = auth()->user()?->name ?? 'Portal-Nutzer';
     $initials = collect(preg_split('/\s+/', trim($displayName)))
         ->filter()
         ->take(2)
@@ -401,6 +401,21 @@
                 flex-wrap: wrap;
             }
 
+            .actions-on-hover {
+                opacity: 0;
+                transform: translateY(4px);
+                pointer-events: none;
+                transition: opacity 0.18s ease, transform 0.18s ease;
+            }
+
+            .list-row.is-interactive:hover .actions-on-hover,
+            .list-row.is-interactive:focus-within .actions-on-hover,
+            .list-row.is-interactive.is-selected .actions-on-hover {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
             .button,
             .print-button,
             .danger-button,
@@ -481,6 +496,23 @@
                 flex-wrap: wrap;
             }
 
+            .list-row.is-interactive {
+                transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            }
+
+            .list-row.is-interactive:hover,
+            .list-row.is-interactive:focus-within,
+            .list-row.is-interactive.is-selected {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 22px rgba(38, 73, 128, 0.14);
+                border-color: #2f64bf;
+            }
+
+            .list-row.is-highlighted {
+                background: #fff2d7;
+                border-color: #d89b20;
+            }
+
             .list-row-copy {
                 display: grid;
                 gap: 4px;
@@ -512,7 +544,8 @@
             }
 
             .field input,
-            .field select {
+            .field select,
+            .field textarea {
                 width: 100%;
                 min-height: 42px;
                 border-radius: 8px;
@@ -523,9 +556,264 @@
                 font: inherit;
             }
 
+            .field textarea {
+                padding: 10px 12px;
+                resize: vertical;
+            }
+
+            .field input[type="file"] {
+                padding: 8px 10px;
+                border-style: dashed;
+                background: rgba(255, 255, 255, 0.85);
+            }
+
+            .field input[type="file"]::file-selector-button {
+                border: 2px solid var(--panel-stroke);
+                background: #d9e5fb;
+                color: #123b74;
+                border-radius: 8px;
+                padding: 6px 12px;
+                font-weight: 700;
+                margin-right: 12px;
+                cursor: pointer;
+            }
+
+            .field-inline {
+                gap: 10px;
+            }
+
+            .field-inline-row {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .class-create-row {
+                flex-wrap: nowrap;
+            }
+
+            .class-grid-compact {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 8px;
+                max-height: 240px;
+                overflow: auto;
+                padding: 6px;
+                border-radius: 10px;
+                border: 2px dashed rgba(23, 63, 123, 0.2);
+                background: rgba(255, 255, 255, 0.38);
+            }
+
+            .class-chip {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 10px;
+                border-radius: 10px;
+                border: 2px solid rgba(23, 63, 123, 0.12);
+                background: rgba(255, 255, 255, 0.76);
+                font-weight: 700;
+                font-size: 0.9rem;
+                cursor: pointer;
+            }
+
+            .class-chip input {
+                margin: 0;
+            }
+
+            .wizard-steps {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-bottom: 6px;
+            }
+
+            .wizard-step-indicator {
+                padding: 6px 12px;
+                border-radius: 999px;
+                border: 2px solid rgba(23, 63, 123, 0.2);
+                background: rgba(255, 255, 255, 0.76);
+                font-weight: 700;
+                font-size: 0.85rem;
+                color: var(--muted);
+            }
+
+            .wizard-step-indicator.is-active {
+                color: #173f7b;
+                border-color: var(--panel-stroke);
+                box-shadow: 0 6px 14px rgba(23, 63, 123, 0.12);
+            }
+
+            .wizard-step {
+                display: grid;
+                gap: 16px;
+                padding: 14px;
+                border-radius: 12px;
+                border: 2px dashed rgba(23, 63, 123, 0.2);
+                background: rgba(255, 255, 255, 0.55);
+            }
+
+            .class-list {
+                display: grid;
+                gap: 10px;
+                margin-top: 12px;
+            }
+
+            .class-list.compact {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 8px;
+            }
+
+            .class-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px;
+                border-radius: 10px;
+                border: 2px solid rgba(23, 63, 123, 0.12);
+                background: rgba(255, 255, 255, 0.65);
+            }
+
+            .class-row.compact {
+                padding: 6px 8px;
+                gap: 6px;
+            }
+
+            .class-row-main {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                width: 100%;
+            }
+
+            .class-row-form {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex: 1 1 240px;
+            }
+
+            .class-row-delete {
+                display: flex;
+                align-items: center;
+            }
+
+            .class-row-actions {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .class-input {
+                min-height: 40px;
+                border-radius: 8px;
+                border: 2px solid var(--panel-stroke);
+                padding: 0 10px;
+                font-weight: 700;
+                min-width: 140px;
+            }
+
+            .class-input.compact {
+                min-height: 34px;
+                font-size: 0.9rem;
+            }
+
+            .button-compact {
+                min-height: 34px;
+                padding: 0 10px;
+                font-size: 0.85rem;
+            }
+
+            .button-icon {
+                min-height: 34px;
+                width: 34px;
+                padding: 0;
+                font-size: 1.1rem;
+                line-height: 1;
+            }
+
+            .panel-body.is-collapsed {
+                display: none;
+            }
+
+            .modal {
+                position: fixed;
+                inset: 0;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                z-index: 1000;
+            }
+
+            .modal.is-open {
+                display: flex;
+            }
+
+            .modal-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(10, 22, 40, 0.45);
+            }
+
+            .modal-content {
+                position: relative;
+                z-index: 1;
+                width: min(520px, 92vw);
+                background: var(--panel-bg);
+                border: 3px solid var(--panel-stroke);
+                border-radius: 12px;
+                padding: 18px;
+                box-shadow: var(--shadow);
+                display: grid;
+                gap: 12px;
+            }
+
             .empty-copy {
                 color: var(--muted);
                 font-weight: 600;
+            }
+
+            .section-anchor {
+                scroll-margin-top: 18px;
+            }
+
+            .teacher-summary-grid {
+                display: grid;
+                gap: 12px;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+
+            .teacher-mini-card {
+                background: rgba(255, 255, 255, 0.48);
+                border: 3px solid var(--panel-stroke);
+                border-radius: 10px;
+                padding: 16px;
+                display: grid;
+                gap: 8px;
+            }
+
+            .teacher-mini-card.is-highlighted {
+                background: #fff2d7;
+                border-color: #d89b20;
+            }
+
+            .teacher-mini-top {
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .compact-field {
+                max-width: 220px;
+            }
+
+            .compact-field.compact-field-short {
+                max-width: 120px;
             }
 
             @media (max-width: 860px) {
@@ -569,6 +857,10 @@
                 .stat-card {
                     padding: 14px;
                 }
+
+                .class-create-row {
+                    flex-wrap: wrap;
+                }
             }
         </style>
     </head>
@@ -583,10 +875,17 @@
 
                 <nav class="header-actions" aria-label="Seitennavigation">
                     @foreach(($navLinks ?? []) as $link)
+                        @php
+                            $href = $link['href'] ?? route($link['route'], $link['params'] ?? []);
+                            $activePattern = $link['active'] ?? ($link['route'] ?? null);
+                            $isActive = isset($link['active_exact'])
+                                ? request()->routeIs($link['active_exact'])
+                                : ($activePattern ? request()->routeIs($activePattern) : false);
+                        @endphp
                         <a
-                            href="{{ route($link['route'], $link['params'] ?? []) }}"
-                            class="header-link {{ request()->routeIs($link['active'] ?? $link['route']) ? 'is-active' : '' }}"
-                        >   
+                            href="{{ $href }}"
+                            class="header-link {{ $isActive ? 'is-active' : '' }}"
+                        >
                             {{ $link['label'] }}
                         </a>
                     @endforeach

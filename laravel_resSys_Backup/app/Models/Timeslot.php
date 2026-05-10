@@ -19,13 +19,11 @@ class Timeslot extends Model
         'ends_at',
         'room',
         'is_reserved',
-        'day',
     ];
 
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
-        'day' => 'date',
         'is_reserved' => 'boolean',
     ];
 

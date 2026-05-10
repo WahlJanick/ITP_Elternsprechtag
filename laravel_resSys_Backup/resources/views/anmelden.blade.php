@@ -83,7 +83,7 @@
     </head>
     <body>
         <div class="login-box">
-            <h1>Login</h1>
+            <h1>Anmeldung</h1>
 
             <a href="{{ url('/auth/azure') }}" class="login-btn">
                 Mit Microsoft anmelden

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dev Login - Elternsprechtag</title>
+    <title>Entwickler-Login - Elternsprechtag</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
     <style>
@@ -165,12 +165,12 @@
 </head>
 <body>
     <div class="dev-login-box">
-        <h1>Dev Login</h1>
+        <h1>Entwickler-Login</h1>
         <div style="position: absolute; top: 20px; right: 20px; font-weight: 700; font-size: 1.2rem; color: #173f7b;" id="student-initials"></div>
 
         <div class="role-grid">
             <div class="role-btn role-student">
-                <span>Als Student einloggen</span>
+                <span>Als Schüler einloggen</span>
                 <div class="student-inputs">
                     <input type="text" id="student-firstname" placeholder="Vorname" />
                     <input type="text" id="student-lastname" placeholder="Nachname" />

@@ -33,7 +33,7 @@ class AuthController extends Controller
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Microsoft login failed. Please start the sign-in process again.');
+                ->with('error', 'Microsoft-Anmeldung fehlgeschlagen. Bitte starte den Anmeldevorgang erneut.');
         }
 
         $email = $azureUser->getEmail()
@@ -44,7 +44,7 @@ class AuthController extends Controller
         if (! $email) {
             return redirect()
                 ->route('login')
-                ->with('error', 'Microsoft login did not return an email address for this account.');
+                ->with('error', 'Microsoft-Anmeldung hat keine E-Mail-Adresse für dieses Konto zurückgegeben.');
         }
 
         $jobTitle = (string) ($azureUser->user['jobTitle'] ?? '');

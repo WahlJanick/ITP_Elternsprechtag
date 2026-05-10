@@ -24,10 +24,15 @@ class Teacher extends Model
         'last_name',
         'kuerzel',
         'classes',
+        'timeslot_duration',
+        'duration_changed_at',
+        'duration_changed_by_teacher',
     ];
 
     protected $casts = [
         'classes' => 'array',
+        'duration_changed_at' => 'datetime',
+        'duration_changed_by_teacher' => 'boolean',
     ];
 
     public function timeslots(): HasMany

@@ -1,0 +1,49 @@
+Der Tag des Elternsprechtags soll für jeden timeslot der gleiche sein (speichere in der Datenbank das Datum für den Elternsprechtag ab, aber nicht für jeden timeslot einzeln).
+(im adminpanel eine einstellung hinzufügen wo man das datum setzt)
+
+dann bitte bei der Lehrererstellung Vor- und Nachname für jeden Lehrer auch einstellen lassen!
+(Bei der Angabe der Email)
+
+Entferne den X-Button bei der Schulklassenerstellung -> wenn man den Text im Textfeld der Klasse entfernt, soll die Klasse gelöscht werden
+
+Nutze statt dem MM/DD/YYYY Format das DD/MM/YYYY Format für die Datumsangabe
+Nutze statt dem HH:MM AM/PM Format das 24-Stunden-Format für die Uhrzeitangabe
+
+Die Funktion "Standard-Termine erzeugen" soll nur dann angezeigt werden, wenn durch die EXCEL-Datein noch keine Informationen zu den Terminen in die Datenbank gespeichert werden
+
+Neben den Schulklassen soll der Admin auch alle Räume der Schule anlegen können (die Anlegung soll ähnlich wie bei den Schulklassen erfolgen)
+
+Die Schulklassen und Räume sollen auch mit Kommagetrennt erstellt werden (Füge einen button "Mehrere hinzufügen" hinzu -> dann öffnet sich ein kleines Popup-Fenster, wo man die Informationen mit Komma getrennt eingeben kann -> z.B. "Klasse 1A, Klasse 1B, Klasse 2A" oder "Raum 101, Raum 102, Raum 103" )
+
+Bitte klappe die Menüs "Schulklassen" und "Räume" im Adminpanel standardmäßig zu, damit die Übersicht verbessert wird.
+
+Erklärungen wie "Neue Klassen anlegen oder bestehende Klassen umbenennen." sind vollkommen überflüssig, da die Funktionalität selbsterklärend ist. Bitte entferne diese Erklärungen aus dem Adminpanel, um die Benutzeroberfläche klarer und übersichtlicher zu gestalten.
+Weiteres Beispiel hierfür wäre "Die Admin-Variante fasst alle wichtigen Kennzahlen zusammen und führt in die Detailseiten." oder "Administration\n Alle Lehrer, Schüler und Termine"
+
+Das Menü "Angelegte Lehrerzugänge" soll in "Lehrerzugänge" umbenannt werden
+und das Menü wird spätestens dann viel zu unübersichtlich, wenn mehr als 10 Lehrer angelegt wurden. Bitte füge eine Suchfunktion hinzu und minimiere die Informationen auf das wesentliche!
+
+---+++---+++---
+
+Das Menü soll zu dieser Struktur umverschoben werden:
+- Dashboard
+- Lehreraktivitäten
+- Datumfestlegung
+- Lehrer
+- Schulklassen
+- Räume
+- Excel-Import
+und in der Navigationsleiste sollen die wichtigsten Menüpunkte zugänglich sein
+
+Lehrer sollen ihre eigene Termindauer einstellen können
+Wenn ein Lehrer die Termindauer ändert, soll der Admin darüber benachrichtigt werden.
+Hebe alle Lehrer in der Lehrerübersicht hervor, die ihre Termindauer geändert haben, damit der Admin schnell erkennen kann, welche Lehrer ihre Termindauer angepasst haben.
+
+
+Ändere bei der individuellen Lehrerbearbeitung folgende Punkte:
+- Inputfelder wie Vorname, Nachname und Kürzel sollten auf eine kleinere Breite angepasst werden, damit die Übersicht verbessert wird.
+- Die Terminübersicht vom Lehrer sollte auch ohne Bearbeitung eingesehen werden können (als eigene Funktionalität, nicht als Bearbeitungsfunktion) und die Termine sollten in einer übersichtlichen Liste dargestellt werden, damit der Admin schnell einen Überblick über die Termine des Lehrers erhält und die Termine sollten mit der Startuhrzeit beschriftet werden.
+die jetzige Darstellung gibt einem Einzelnen Timeslot zu viel Infos und zu viel Platz, was die Übersicht erschwert.
+
+
+Buttons wie "Bearbeiten" oder "Löschten" sollten in der Lehrerübersicht nur dann angezeigt werden, wenn man einen Lehrer auswählt oder mit der Maus über einen Lehrer fährt, um die Übersicht zu verbessern und die Benutzeroberfläche klarer zu gestalten.

@@ -36,7 +36,6 @@ class TimeslotSeeder extends Seeder
                         'ends_at' => $startsAt->copy()->addMinutes(10)->toDateTimeString(),
                         'room' => $teacherRoom,
                         'is_reserved' => false,
-                        'day' => $startsAt->toDateString(),
                     ];
                 }
             });
@@ -45,7 +44,7 @@ class TimeslotSeeder extends Seeder
             Timeslot::upsert(
                 $timeslots,
                 ['id'],
-                ['teacher_id', 'student_id', 'starts_at', 'ends_at', 'room', 'is_reserved', 'day']
+                ['teacher_id', 'student_id', 'starts_at', 'ends_at', 'room', 'is_reserved']
             );
         }
     }

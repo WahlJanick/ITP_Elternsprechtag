@@ -1,10 +1,10 @@
 @extends('layouts.portal', [
-    'pageTitle' => 'Schueler Lehreruebersicht',
-    'roleTitle' => 'Schueler-Ansicht',
+    'pageTitle' => 'Schüler-Lehrerübersicht',
+    'roleTitle' => 'Schüler-Ansicht',
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
-        ['label' => 'Home', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Start', 'route' => 'student.booking', 'active' => 'student.booking'],
         ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings'],
     ],
 ])
@@ -20,7 +20,7 @@
                         @if($currentClass)
                             Klasse {{ $currentClass }}. Lehrer ohne freie Slots bleiben sichtbar.
                         @else
-                            Waehle einen Lehrer aus.
+                            Wähle einen Lehrer aus.
                         @endif
                     </p>
                 </div>
@@ -28,7 +28,7 @@
             </div>
 
             @if($teachers->isEmpty())
-                <p class="empty-copy">Fuer deine aktuelle Ansicht sind keine Lehrer hinterlegt.</p>
+                <p class="empty-copy">Für deine aktuelle Ansicht sind keine Lehrer hinterlegt.</p>
             @else
                 <div class="teacher-grid">
                     @foreach($teachers as $teacher)
@@ -36,7 +36,7 @@
                             <span class="tile-code">{{ $teacher['short'] }}</span>
                             <span class="tile-title">{{ $teacher['name'] }}</span>
                             <span class="status-chip {{ $teacher['free_slots'] > 0 ? 'is-free' : 'is-booked' }}">
-                                {{ $teacher['free_slots'] > 0 ? $teacher['free_slots'].' freie Slots' : 'Aktuell keine freien Slots' }}
+                                {{ $teacher['free_slots'] > 0 ? $teacher['free_slots'].' freie Termine' : 'Aktuell keine freien Termine' }}
                             </span>
                         </a>
                     @endforeach
