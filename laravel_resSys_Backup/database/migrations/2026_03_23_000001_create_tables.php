@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('last_name');
             $table->json('classes');
         });
-
         Schema::create('timeslots', function (Blueprint $table) {
             $table->integer('id')->primary();
             $table->integer('teacher_id');
@@ -39,9 +38,6 @@ return new class extends Migration
             $table->string('room');
             $table->boolean('is_reserved')->default(false);
             $table->date('day');
-
         });
     }
-
-
 };

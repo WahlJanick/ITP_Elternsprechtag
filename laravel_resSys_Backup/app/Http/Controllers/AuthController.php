@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str as SupportStr;
 use Illuminate\Support\Str;
+use Illuminate\Http\RedirectResponse;
 use Laravel\Socialite\Facades\Socialite;
 use Throwable;
 
@@ -24,6 +25,15 @@ class AuthController extends Controller
         return Socialite::driver('azure')
             ->with(['prompt' => 'login'])
             ->redirect();
+    }
+
+    public function logout(): RedirectResponse
+    {
+        Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 
     public function handleAzureCallback()

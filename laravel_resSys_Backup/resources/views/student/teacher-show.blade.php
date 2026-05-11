@@ -61,23 +61,9 @@
             @endif
         </section>
 
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <span class="eyebrow">Navigation</span>
-                    <h2 class="panel-title">Vorherige und naechste Lehrer</h2>
-                </div>
-            </div>
-
-            <div class="teacher-grid">
-                @foreach($teachers as $listTeacher)
-                    <a class="tile" href="{{ route('student.teachers.show', $listTeacher['slug']) }}">
-                        <span class="tile-code">{{ $listTeacher['short'] }}</span>
-                        <span class="tile-title">{{ $listTeacher['name'] }}</span>
-                    </a>
-                @endforeach
-            </div>
-        </section>
+        <div class="inline-actions">
+            <a class="button" href="{{ route('student.teachers.index') }}">Zurueck zur Uebersicht</a>
+        </div>
     </div>
 
     @if(!$alreadyBooked)
