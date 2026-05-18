@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev \
     libicu-dev \
     libzip-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
     pdo_pgsql \
@@ -23,6 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     bcmath \
     soap \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -48,9 +53,14 @@ WORKDIR /var/www
 # -----------------------------------------------------------
 COPY . /var/www
 
+# Remove cached bootstrap manifests from the host workspace before Composer
+# boots Laravel inside the image. These files may reference dev-only packages
+# that are intentionally excluded by the production-style install.
+RUN rm -f /var/www/bootstrap/cache/*.php
+
 # Install Composer and dependencies
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
+    && composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist --no-scripts
 
 
 # Stage 2: Production environment
@@ -146,7 +156,8 @@ fi
 ARG UID=1000
 ARG GID=1000
 
-# Create a new user with the specified UID and GID, reusing an existing group if GID exists
+# Create a new user with the specified UID and GID, then update php-fpm
+# in the same layer so the resolved group name is still available.
 RUN if getent group ${GID}; then \
       group_name=$(getent group ${GID} | cut -d: -f1); \
       useradd -m -u ${UID} -g ${GID} -s /bin/bash www; \
@@ -154,11 +165,9 @@ RUN if getent group ${GID}; then \
       groupadd -g ${GID} www && \
       useradd -m -u ${UID} -g www -s /bin/bash www; \
       group_name=www; \
-    fi
-
-# Dynamically update php-fpm to use the new user and group
-RUN sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
-    sed -i "s/group = www-data/group = $group_name/g" /usr/local/etc/php-fpm.d/www.conf
+    fi && \
+    sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
+    sed -i "s/group = www-data/group = ${group_name}/g" /usr/local/etc/php-fpm.d/www.conf
 
 
 # Set the working directory

@@ -18,11 +18,13 @@ class TimeslotController extends Controller
     {
         $validated = $request->validate([
             'teacher_id' => 'required|integer|exists:teachers,teacher_id',
+            'parent_day_id' => 'nullable|integer|exists:parent_days,id',
             'student_id' => 'nullable|integer|exists:students,student_id',
             'starts_at' => 'required|date',
             'ends_at' => 'required|date|after:starts_at',
             'room' => 'required|string|max:255',
             'is_reserved' => 'boolean',
+            'day' => 'nullable|date',
         ]);
 
         $timeslot = Timeslot::create($validated);
@@ -38,11 +40,13 @@ class TimeslotController extends Controller
     {
         $validated = $request->validate([
             'teacher_id' => 'integer|exists:teachers,teacher_id',
+            'parent_day_id' => 'nullable|integer|exists:parent_days,id',
             'student_id' => 'nullable|integer|exists:students,student_id',
             'starts_at' => 'date',
             'ends_at' => 'date|after:starts_at',
             'room' => 'string|max:255',
             'is_reserved' => 'boolean',
+            'day' => 'nullable|date',
         ]);
 
         $timeslot->update($validated);

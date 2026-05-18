@@ -40,6 +40,11 @@ class Teacher extends Model
         return $this->hasMany(Timeslot::class, 'teacher_id', 'teacher_id');
     }
 
+    public function parentDaySettings(): HasMany
+    {
+        return $this->hasMany(TeacherParentDaySetting::class, 'teacher_id', 'teacher_id');
+    }
+
     public function getFullNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->last_name}");

@@ -26,8 +26,16 @@
                 --panel-stroke: #4d79ce;
                 --copy: #122a52;
                 --muted: #31548a;
+                --heading: #173f7b;
+                --eyebrow-color: #2d5797;
                 --accent: #95c11f;
                 --accent-copy: #12345f;
+                --header-link-bg: #d9e5fb;
+                --header-link-border: #87a7dd;
+                --header-link-copy: #123b74;
+                --header-link-active-bg: #ffffff;
+                --user-badge-bg: #ffffff;
+                --user-badge-copy: #365fa7;
                 --danger: #ff5c56;
                 --danger-soft: #ffe4e2;
                 --warning: #ffd866;
@@ -36,18 +44,69 @@
             }
 
             .theme-student {
-                --accent: #a8d62b;
-                --accent-copy: #153964;
+                --header-start: #8fa86a;
+                --header-end: #738b55;
+                --header-text: #f4f8ea;
+                --page-bg: #f6f8f1;
+                --panel-bg: #edf2e4;
+                --panel-strong: #e4ead8;
+                --panel-stroke: #9fb186;
+                --copy: #31402a;
+                --muted: #66775b;
+                --heading: #44563a;
+                --eyebrow-color: #6c7f5c;
+                --accent: #a7ba88;
+                --accent-copy: #273421;
+                --header-link-bg: #ebf0e1;
+                --header-link-border: #bcc8aa;
+                --header-link-copy: #43563a;
+                --header-link-active-bg: #ffffff;
+                --user-badge-bg: #f7faf1;
+                --user-badge-copy: #526449;
             }
 
             .theme-teacher {
-                --accent: #3f78e2;
+                --header-start: #6e89b6;
+                --header-end: #56709a;
+                --header-text: #edf3fb;
+                --page-bg: #f3f6fa;
+                --panel-bg: #e7edf6;
+                --panel-strong: #dde6f1;
+                --panel-stroke: #8ea3c1;
+                --copy: #25364d;
+                --muted: #5a6d88;
+                --heading: #364b67;
+                --eyebrow-color: #667b97;
+                --accent: #7f9bc2;
                 --accent-copy: #ffffff;
+                --header-link-bg: #e8eef7;
+                --header-link-border: #b5c3d8;
+                --header-link-copy: #405572;
+                --header-link-active-bg: #ffffff;
+                --user-badge-bg: #ffffff;
+                --user-badge-copy: #5b7392;
             }
 
             .theme-admin {
-                --accent: #ff6b60;
+                --header-start: #b78a7f;
+                --header-end: #966a60;
+                --header-text: #fdf1ee;
+                --page-bg: #fbf4f2;
+                --panel-bg: #f3e5e1;
+                --panel-strong: #ebdad5;
+                --panel-stroke: #c7a095;
+                --copy: #4d302b;
+                --muted: #7a5b55;
+                --heading: #6a433c;
+                --eyebrow-color: #936e66;
+                --accent: #c88f84;
                 --accent-copy: #ffffff;
+                --header-link-bg: #f7ebe8;
+                --header-link-border: #d9bbb4;
+                --header-link-copy: #6d4b45;
+                --header-link-active-bg: #fff9f8;
+                --user-badge-bg: #fff8f6;
+                --user-badge-copy: #8a625a;
             }
 
             * {
@@ -58,7 +117,7 @@
                 margin: 0;
                 min-height: 100vh;
                 background:
-                    radial-gradient(circle at top, rgba(77, 121, 206, 0.14), transparent 36%),
+                    radial-gradient(circle at top, color-mix(in srgb, var(--panel-stroke) 24%, transparent), transparent 36%),
                     linear-gradient(180deg, #fbfdff 0%, var(--page-bg) 100%);
                 color: var(--copy);
                 font-family: 'Instrument Sans', sans-serif;
@@ -150,6 +209,33 @@
                 flex-wrap: wrap;
             }
 
+            .parent-day-select {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                border-radius: 10px;
+                border: 2px solid var(--header-link-border);
+                background: rgba(255, 255, 255, 0.16);
+                color: var(--header-text);
+                font-weight: 600;
+            }
+
+            .parent-day-select label {
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            .parent-day-select select {
+                border: none;
+                background: var(--header-link-active-bg);
+                color: var(--header-link-copy);
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-weight: 600;
+            }
+
             .header-link,
             .logout-link {
                 display: inline-flex;
@@ -157,9 +243,9 @@
                 justify-content: center;
                 min-height: 42px;
                 border-radius: 8px;
-                border: 2px solid #87a7dd;
-                background: #d9e5fb;
-                color: #123b74;
+                border: 2px solid var(--header-link-border);
+                background: var(--header-link-bg);
+                color: var(--header-link-copy);
                 text-decoration: none;
                 font-weight: 700;
                 box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
@@ -167,10 +253,27 @@
 
             .header-link {
                 padding: 0 16px;
+                gap: 8px;
             }
 
             .header-link.is-active {
-                background: white;
+                background: var(--header-link-active-bg);
+            }
+
+            .header-link-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 24px;
+                min-height: 24px;
+                padding: 0 6px;
+                border-radius: 999px;
+                background: color-mix(in srgb, var(--accent) 18%, white);
+                color: var(--header-link-copy);
+                border: 2px solid color-mix(in srgb, var(--accent) 28%, rgba(23, 63, 123, 0.1));
+                font-size: 0.76rem;
+                font-weight: 800;
+                line-height: 1;
             }
 
             .logout-link {
@@ -191,8 +294,8 @@
                 height: 56px;
                 border-radius: 999px;
                 border: 3px solid var(--panel-stroke);
-                background: white;
-                color: #365fa7;
+                background: var(--user-badge-bg);
+                color: var(--user-badge-copy);
                 font-weight: 700;
                 display: flex;
                 align-items: center;
@@ -262,7 +365,7 @@
                 display: inline-flex;
                 align-items: center;
                 margin-bottom: 8px;
-                color: #2d5797;
+                color: var(--eyebrow-color);
                 font-size: 0.82rem;
                 font-weight: 800;
                 letter-spacing: 0.08em;
@@ -272,7 +375,7 @@
             .panel-title,
             .hero-title {
                 margin: 0;
-                color: #173f7b;
+                color: var(--heading);
                 font-size: clamp(1.5rem, 3vw, 2.2rem);
                 font-weight: 800;
             }
@@ -342,7 +445,7 @@
             .tile-code {
                 font-size: 1.15rem;
                 font-weight: 800;
-                color: #173f7b;
+                color: var(--heading);
                 font-style: italic;
             }
 
@@ -384,7 +487,7 @@
 
             .number {
                 display: block;
-                color: #173f7b;
+                color: var(--heading);
                 font-size: clamp(1.7rem, 4vw, 2.4rem);
                 font-weight: 800;
                 line-height: 1;
@@ -410,7 +513,11 @@
 
             .list-row.is-interactive:hover .actions-on-hover,
             .list-row.is-interactive:focus-within .actions-on-hover,
-            .list-row.is-interactive.is-selected .actions-on-hover {
+            .list-row.is-interactive.is-selected .actions-on-hover,
+            .teacher-mini-card:hover .actions-on-hover,
+            .teacher-mini-card:focus-within .actions-on-hover,
+            .teacher-activity-panel:hover .actions-on-hover,
+            .teacher-activity-panel:focus-within .actions-on-hover {
                 opacity: 1;
                 transform: translateY(0);
                 pointer-events: auto;
@@ -516,13 +623,14 @@
             .list-row-copy {
                 display: grid;
                 gap: 4px;
+                min-width: 0;
             }
 
             .list-row-title {
                 margin: 0;
                 font-size: 1.04rem;
                 font-weight: 800;
-                color: #173f7b;
+                color: var(--heading);
             }
 
             .filters {
@@ -794,11 +902,18 @@
                 padding: 16px;
                 display: grid;
                 gap: 8px;
+                transition: transform 0.18s ease, box-shadow 0.18s ease;
             }
 
             .teacher-mini-card.is-highlighted {
                 background: #fff2d7;
                 border-color: #d89b20;
+            }
+
+            .teacher-mini-card:hover,
+            .teacher-mini-card:focus-within {
+                transform: translateY(-1px);
+                box-shadow: 0 10px 22px rgba(38, 73, 128, 0.14);
             }
 
             .teacher-mini-top {
@@ -808,18 +923,117 @@
                 align-items: flex-start;
             }
 
+            .teacher-mini-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .teacher-activity-toolbar {
+                justify-content: flex-end;
+            }
+
             .compact-field {
-                max-width: 220px;
+                max-width: 180px;
             }
 
             .compact-field.compact-field-short {
-                max-width: 120px;
+                max-width: 90px;
+            }
+
+            .admin-teacher-form-grid {
+                grid-template-columns: repeat(auto-fit, minmax(90px, max-content));
+                align-items: end;
+                gap: 12px;
+            }
+
+            .notification-banner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                flex-wrap: wrap;
+                padding: 14px 16px;
+                border-radius: 12px;
+                border: 3px solid #d89b20;
+                background: #fff2d7;
+                box-shadow: var(--shadow);
+            }
+
+            .notification-banner-copy {
+                display: grid;
+                gap: 4px;
+            }
+
+            .appointments-list {
+                display: grid;
+                gap: 10px;
+            }
+
+            .appointment-row {
+                display: grid;
+                grid-template-columns: 88px minmax(0, 1fr) auto;
+                gap: 14px;
+                align-items: center;
+                padding: 12px 14px;
+                border-radius: 10px;
+                border: 2px solid rgba(23, 63, 123, 0.14);
+                background: rgba(255, 255, 255, 0.62);
+            }
+
+            .appointment-time {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 42px;
+                border-radius: 10px;
+                background: #ffffff;
+                border: 2px solid var(--panel-stroke);
+                color: #173f7b;
+                font-weight: 800;
+            }
+
+            .appointment-main {
+                display: grid;
+                gap: 3px;
+                min-width: 0;
+            }
+
+            .appointment-title {
+                margin: 0;
+                font-size: 1rem;
+                font-weight: 800;
+                color: #173f7b;
+            }
+
+            .appointment-meta {
+                margin: 0;
+                color: var(--muted);
+                line-height: 1.45;
+            }
+
+            .appointment-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 8px;
+                flex-wrap: wrap;
             }
 
             @media (max-width: 860px) {
                 .hero-grid,
                 .filters {
                     grid-template-columns: 1fr;
+                }
+
+                .appointment-row {
+                    grid-template-columns: 1fr;
+                    align-items: start;
+                }
+
+                .appointment-actions {
+                    justify-content: flex-start;
                 }
 
                 .header-actions {
@@ -874,6 +1088,19 @@
                 <h1 class="page-title">{{ $roleTitle ?? 'Portal-Ansicht' }}</h1>
 
                 <nav class="header-actions" aria-label="Seitennavigation">
+                    @if(isset($parentDays) && $parentDays->isNotEmpty())
+                        <form method="POST" action="{{ route('parent-days.select') }}" class="parent-day-select">
+                            @csrf
+                            <label for="parent_day_id">Tag</label>
+                            <select id="parent_day_id" name="parent_day_id" onchange="this.form.submit()">
+                                @foreach($parentDays as $day)
+                                    <option value="{{ $day->id }}" @if($activeParentDay && $activeParentDay->id === $day->id) selected @endif>
+                                        {{ $day->date->format('d/m/Y') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    @endif
                     @foreach(($navLinks ?? []) as $link)
                         @php
                             $href = $link['href'] ?? route($link['route'], $link['params'] ?? []);
@@ -887,6 +1114,9 @@
                             class="header-link {{ $isActive ? 'is-active' : '' }}"
                         >
                             {{ $link['label'] }}
+                            @if(! empty($link['badge']))
+                                <span class="header-link-badge">{{ $link['badge'] }}</span>
+                            @endif
                         </a>
                     @endforeach
 

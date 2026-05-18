@@ -56,8 +56,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/dashboard', [PortalController::class, 'teacherDashboard'])->name('teacher.dashboard');
     Route::post('/teacher/timeslot-duration', [PortalController::class, 'teacherTimeslotDurationUpdate'])->name('teacher.timeslot-duration.update');
 
+    Route::post('/parent-days/select', [PortalController::class, 'parentDaySelect'])->name('parent-days.select');
+
     Route::get('/admin', [PortalController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::post('/admin/parent-day', [PortalController::class, 'adminParentDayUpdate'])->name('admin.parent-day.update');
+    Route::post('/admin/parent-days/{parentDay}/delete', [PortalController::class, 'adminParentDayDelete'])->name('admin.parent-days.delete');
     Route::post('/admin/classes', [PortalController::class, 'adminClassesStore'])->name('admin.classes.store');
     Route::post('/admin/classes/{schoolClass}/update', [PortalController::class, 'adminClassesUpdate'])->name('admin.classes.update');
     Route::post('/admin/classes/{schoolClass}/delete', [PortalController::class, 'adminClassesDelete'])->name('admin.classes.delete');
@@ -68,10 +71,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/teachers/import', [PortalController::class, 'adminTeacherImport'])->name('admin.teachers.import');
     Route::post('/admin/teachers/accounts/{user}/create-profile', [PortalController::class, 'adminTeacherAccountCreateProfile'])->name('admin.teachers.accounts.create-profile');
     Route::post('/admin/teachers/accounts/{user}/delete', [PortalController::class, 'adminTeacherAccountDelete'])->name('admin.teachers.accounts.delete');
+    Route::get('/admin/teachers/{teacher}/appointments', [PortalController::class, 'adminTeacherAppointments'])->name('admin.teachers.appointments');
     Route::get('/admin/teachers/{teacher}', [PortalController::class, 'adminTeacherShow'])->name('admin.teachers.show');
     Route::post('/admin/teachers/{teacher}/quick-update', [PortalController::class, 'adminTeacherQuickUpdate'])->name('admin.teachers.quick-update');
     Route::post('/admin/teachers/{teacher}/update', [PortalController::class, 'adminTeacherUpdate'])->name('admin.teachers.update');
+    Route::post('/admin/teachers/{teacher}/duration', [PortalController::class, 'adminTeacherDurationUpdate'])->name('admin.teachers.duration.update');
     Route::post('/admin/teachers/{teacher}/classes', [PortalController::class, 'adminTeacherClassesUpdate'])->name('admin.teachers.classes.update');
+    Route::post('/admin/teachers/{teacher}/activities/delete', [PortalController::class, 'adminTeacherActivityDelete'])->name('admin.teachers.activities.delete');
+    Route::post('/admin/teachers/activities/delete-all', [PortalController::class, 'adminTeacherActivitiesDeleteAll'])->name('admin.teachers.activities.delete-all');
     Route::get('/admin/timeslots/create', [PortalController::class, 'adminTimeslotCreate'])->name('admin.timeslots.create');
     Route::post('/admin/timeslots', [PortalController::class, 'adminTimeslotStore'])->name('admin.timeslots.store');
     Route::get('/admin/timeslots/{timeslot}/edit', [PortalController::class, 'adminTimeslotEdit'])->name('admin.timeslots.edit');

@@ -19,7 +19,6 @@ class DevLoginController extends Controller
         if (! $this->isDevEnvironment()) {
             abort(404);
         }
-
         return view('dev-login');
     }
 

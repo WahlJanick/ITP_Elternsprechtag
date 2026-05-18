@@ -5,7 +5,7 @@
     'homeRoute' => 'admin.dashboard',
     'navLinks' => [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
-        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity'],
+        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity', 'badge' => $teacherDurationChangeCount ?: null],
         ['label' => 'Datumfestlegung', 'href' => route('admin.dashboard').'#parent-day'],
         ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
         ['label' => 'Schulklassen', 'href' => route('admin.dashboard').'#classes'],
@@ -16,6 +16,19 @@
 
 @section('content')
     <div class="stack">
+        @if($teacherDurationChangeCount > 0)
+            <section class="notification-banner">
+                <div class="notification-banner-copy">
+                    <strong>
+                        {{ $teacherDurationChangeCount }} Lehrer {{ $teacherDurationChangeCount === 1 ? 'hat' : 'haben' }}
+                        {{ $teacherDurationChangeCount === 1 ? 'seine' : 'ihre' }} Termindauer angepasst.
+                    </strong>
+                </div>
+
+                <a class="button" href="#teacher-activity">Zu Lehreraktivitäten</a>
+            </section>
+        @endif
+
         <section class="panel section-anchor" id="dashboard">
             <div class="panel-header">
                 <div>
@@ -43,17 +56,26 @@
             </div>
         </section>
 
-        <section class="panel section-anchor" id="teacher-activity">
+        <section class="panel section-anchor teacher-activity-panel" id="teacher-activity">
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehreraktivitäten</h2>
                 </div>
+
+                @if($teacherDurationChanges->isNotEmpty())
+                    <div class="teacher-mini-actions teacher-activity-toolbar">
+                        <form method="POST" action="{{ route('admin.teachers.activities.delete-all') }}">
+                            @csrf
+                            <button type="submit" class="danger-button button-compact">Alle löschen</button>
+                        </form>
+                    </div>
+                @endif
             </div>
 
             @if($teacherDurationChanges->isNotEmpty())
                 <div class="teacher-summary-grid">
                     @foreach($teacherDurationChanges as $teacher)
-                        <article class="teacher-mini-card is-highlighted">
+                        <article class="teacher-mini-card is-highlighted" data-activity-card>
                             <div class="teacher-mini-top">
                                 <div class="list-row-copy">
                                     <p class="list-row-title">{{ $teacher['name'] }}</p>
@@ -66,8 +88,12 @@
                                     {{ $teacher['duration_changed_label'] }}
                                 @endif
                             </p>
-                            <div class="button-row">
-                                <a class="button" href="{{ route('admin.teachers.show', $teacher['slug']) }}">Lehrer öffnen</a>
+                            <div class="teacher-mini-actions actions-on-hover">
+                                <a class="button button-compact" href="{{ route('admin.teachers.show', $teacher['slug']) }}">Lehrer öffnen</a>
+                                <form method="POST" action="{{ route('admin.teachers.activities.delete', $teacher['slug']) }}">
+                                    @csrf
+                                    <button type="submit" class="danger-button button-compact">Löschen</button>
+                                </form>
                             </div>
                         </article>
                     @endforeach
@@ -81,6 +107,7 @@
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Datumfestlegung</h2>
+                    <p class="panel-subtitle">Lege beliebig viele Elternsprechtage an und wechsle oben in der Leiste.</p>
                 </div>
             </div>
 
@@ -96,10 +123,33 @@
                             value="{{ old('parent_day', $parentDayValue) }}"
                             required
                         />
-                        <button type="submit" class="button">Speichern</button>
+                        <button type="submit" class="button">Anlegen</button>
                     </div>
                 </div>
             </form>
+
+            @if($parentDays->isEmpty())
+                <p class="empty-copy">Noch keine Elternsprechtage angelegt.</p>
+            @else
+                <div class="list-stack">
+                    @foreach($parentDays as $day)
+                        <article class="list-row {{ $activeParentDay && $activeParentDay->id === $day->id ? 'is-highlighted' : '' }}">
+                            <div class="list-row-copy">
+                                <p class="list-row-title">{{ $day->date->format('d/m/Y') }}</p>
+                                <p class="meta-copy">
+                                    {{ $activeParentDay && $activeParentDay->id === $day->id ? 'Aktiver Elternsprechtag' : 'Nicht aktiv' }}
+                                </p>
+                            </div>
+                            <div class="list-row-actions">
+                                <form method="POST" action="{{ route('admin.parent-days.delete', $day->id) }}">
+                                    @csrf
+                                    <button type="submit" class="danger-button">Loeschen</button>
+                                </form>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
         </section>
 
         <section class="panel section-anchor" id="teachers">
@@ -143,6 +193,7 @@
                             </div>
 
                             <div class="list-row-actions actions-on-hover">
+                                <a class="ghost-button" href="{{ route('admin.teachers.appointments', $teacher['slug']) }}">Termine</a>
                                 <a class="button" href="{{ route('admin.teachers.show', $teacher['slug']) }}">Bearbeiten</a>
                             </div>
                         </article>
@@ -378,7 +429,6 @@
                                         class="class-input compact"
                                         data-class-input
                                     />
-                                    <button type="submit" class="ghost-button button-compact">OK</button>
                                 </form>
                             </div>
                         @endforeach
@@ -434,7 +484,6 @@
                                         class="class-input compact"
                                         data-room-input
                                     />
-                                    <button type="submit" class="ghost-button button-compact">OK</button>
                                 </form>
                             </div>
                         @endforeach
@@ -758,6 +807,7 @@
                     }
                 });
             });
+
         })();
     </script>
 @endsection

@@ -5,8 +5,10 @@
     'homeRoute' => 'admin.dashboard',
     'navLinks' => [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
+        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity'],
+        ['label' => 'Datumfestlegung', 'href' => route('admin.dashboard').'#parent-day'],
         ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Terminübersicht', 'href' => '#appointments'],
+        ['label' => 'Terminübersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
     ],
 ])
 
@@ -29,7 +31,7 @@
             <form method="POST" action="{{ route('admin.teachers.update', $teacher['slug']) }}" class="stack">
                 @csrf
 
-                <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(120px, max-content)); align-items: end;">
+                <div class="teacher-grid admin-teacher-form-grid">
                     <div class="field compact-field">
                         <label for="first_name">Vorname</label>
                         <input
@@ -66,8 +68,39 @@
 
                 <div class="button-row">
                     <button type="submit" class="button">Lehrer speichern</button>
+                    <a href="{{ route('admin.teachers.appointments', $teacher['slug']) }}" class="ghost-button">Terminübersicht</a>
                     <a href="{{ route('admin.dashboard') }}#teachers" class="ghost-button">Zur Lehrerübersicht</a>
                 </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <span class="eyebrow">Elternsprechtag</span>
+                    <h2 class="panel-title">Termindauer einstellen</h2>
+                    <p class="panel-subtitle">Aktiver Elternsprechtag: {{ $parentDayLabel }}</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('admin.teachers.duration.update', $teacher['slug']) }}" class="stack">
+                @csrf
+                <div class="field field-inline">
+                    <label for="timeslot_duration">Dauer in Minuten</label>
+                    <div class="field-inline-row">
+                        <input
+                            id="timeslot_duration"
+                            type="number"
+                            name="timeslot_duration"
+                            min="5"
+                            step="5"
+                            value="{{ old('timeslot_duration', $teacher['timeslot_duration'] ?? 10) }}"
+                            required
+                        />
+                        <button type="submit" class="button">Speichern</button>
+                    </div>
+                </div>
+                <p class="hint">Diese Termindauer gilt nur fuer den aktuell gewaehlten Elternsprechtag.</p>
             </form>
         </section>
 
@@ -115,50 +148,6 @@
                     <button type="submit" class="button">Klassen speichern</button>
                 </div>
             </form>
-        </section>
-
-        <section class="panel section-anchor" id="appointments">
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Terminübersicht</h2>
-                </div>
-
-                <a class="button" href="{{ route('admin.timeslots.create', ['teacher' => $teacher['reference_id']]) }}">Termin hinzufügen</a>
-            </div>
-
-            @if($appointments->isEmpty())
-                <p class="empty-copy">Für diesen Lehrer wurden noch keine Termine angelegt.</p>
-            @else
-                <div class="list-stack">
-                    @foreach($appointments as $appointment)
-                        <article class="list-row">
-                            <div class="list-row-copy">
-                                <p class="list-row-title">{{ $appointment['time_label'] }}</p>
-                                <p class="meta-copy">{{ $appointment['date_label'] }} · Raum {{ $appointment['room'] }}</p>
-                                <p class="meta-copy">{{ $appointment['student_name'] }} · {{ $appointment['class_name'] }}</p>
-                            </div>
-
-                            <div class="list-row-actions">
-                                <span class="status-chip {{ $appointment['is_reserved'] ? 'is-booked' : 'is-free' }}">
-                                    {{ $appointment['is_reserved'] ? 'Gebucht' : 'Frei' }}
-                                </span>
-                                <a class="ghost-button" href="{{ route('admin.timeslots.edit', $appointment['id']) }}">Bearbeiten</a>
-                                @if($appointment['is_reserved'])
-                                    <form method="POST" action="{{ route('admin.timeslots.release', $appointment['id']) }}">
-                                        @csrf
-                                        <button type="submit" class="danger-button">Stornieren</button>
-                                    </form>
-                                @endif
-                                <form method="POST" action="{{ route('admin.timeslots.destroy', $appointment['id']) }}">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="danger-button">Löschen</button>
-                                </form>
-                            </div>
-                        </article>
-                    @endforeach
-                </div>
-            @endif
         </section>
     </div>
 @endsection

@@ -14,22 +14,30 @@ class Timeslot extends Model
 
     protected $fillable = [
         'teacher_id',
+        'parent_day_id',
         'student_id',
         'starts_at',
         'ends_at',
         'room',
         'is_reserved',
+        'day',
     ];
 
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'is_reserved' => 'boolean',
+        'day' => 'date',
     ];
 
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Teacher::class, 'teacher_id', 'teacher_id');
+    }
+
+    public function parentDay(): BelongsTo
+    {
+        return $this->belongsTo(ParentDay::class, 'parent_day_id');
     }
 
     public function student(): BelongsTo

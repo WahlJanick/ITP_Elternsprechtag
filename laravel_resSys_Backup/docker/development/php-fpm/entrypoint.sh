@@ -16,6 +16,7 @@ fi
 # Clear configurations to avoid caching issues in development
 if [ -f /var/www/artisan ] && [ -f /var/www/vendor/autoload.php ]; then
 	echo "Clearing configurations..."
+	rm -f /var/www/bootstrap/cache/*.php || true
 	php /var/www/artisan config:clear || true
 	php /var/www/artisan route:clear || true
 	php /var/www/artisan view:clear || true

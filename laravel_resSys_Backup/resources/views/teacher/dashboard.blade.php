@@ -30,12 +30,13 @@
                                 name="timeslot_duration"
                                 min="5"
                                 step="5"
-                                value="{{ old('timeslot_duration', $teacher->timeslot_duration ?? 10) }}"
+                                value="{{ old('timeslot_duration', $currentDuration ?? $teacher->timeslot_duration ?? 10) }}"
                                 required
                             />
                             <button type="submit" class="button">Speichern</button>
                         </div>
                     </div>
+                    <p class="hint">Wenn du die Termindauer änderst, wird die Änderung für die Administration markiert.</p>
                 </form>
             </section>
         @endif
