@@ -32,7 +32,7 @@
             h1 {
                 margin: 0 0 10px;
                 font-size: 2rem;
-                text-align: center;  
+                text-align: center;
             }
 
             p {
