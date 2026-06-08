@@ -16,9 +16,6 @@
                 <div>
                     <span class="eyebrow">Startseite</span>
                     <h2 class="hero-title">Gebuchte Termine</h2>
-                    <p class="hero-copy">
-                        Dein Schnellzugriff auf gebuchte Termine.
-                    </p>
                 </div>
 
                 <div class="hero-actions">
@@ -28,9 +25,7 @@
             </div>
 
             <div class="hero-grid">
-                <div class="panel panel-strong">
-                    <span class="eyebrow">Übersicht</span>
-                    <div class="summary-grid">
+                <div class="summary-grid">
                         <article class="stat-card">
                             <span class="number">{{ $summary['count'] }}</span>
                             <span class="mini-label">Gebuchte Termine</span>
@@ -39,14 +34,6 @@
                             <span class="number">{{ $summary['assigned_teacher_count'] }}</span>
                             <span class="mini-label">Lehrer deiner Klasse</span>
                         </article>
-                    </div>
-                </div>
-
-                <div class="panel panel-strong">
-                    <span class="eyebrow">Gebuchte Lehrer</span>
-                    <p class="hero-copy">
-                        {{ $summary['teacher_names'] ?: 'Noch keine Termine gebucht.' }}
-                    </p>
                 </div>
             </div>
         </section>
@@ -54,8 +41,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Unterricht</span>
-                    <h2 class="panel-title">Diese Lehrer unterrichten dich</h2>
+                    <span class="eyebrow">Lehrer</span>
                     <p class="panel-subtitle">
                         @if($currentClass)
                             Klasse {{ $currentClass }}

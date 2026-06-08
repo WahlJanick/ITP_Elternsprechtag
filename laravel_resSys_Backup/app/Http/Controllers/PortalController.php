@@ -33,7 +33,7 @@ class PortalController extends Controller
         '6AAME', '6AKME',
     ];
 
-    private const DEFAULT_TEACHER_EMAIL_DOMAIN = 'schule.at';
+    private const DEFAULT_TEACHER_EMAIL_DOMAIN = 'htlwy.at';
 
     public function studentDashboard()
     {
@@ -95,17 +95,27 @@ class PortalController extends Controller
         $teacherRoom = $this->getTeacherRoom($selectedTeacher['reference_id']);
         $freeSlots = $this->freeSlotsForTeacher($selectedTeacher);
         $slotRange = $freeSlots->pluck('label')->filter();
-        $bookingNotice = $slotRange->isNotEmpty()
-            ? sprintf(
+        $bookingNotice = match (true) {
+            $alreadyBooked => sprintf(
+                'Du hast bei diesem Lehrer am %s bereits einen Termin gebucht.',
+                $this->parentDayLabel()
+            ),
+            $slotRange->isEmpty() => sprintf(
+                'Am %s sind derzeit keine freien Termine verfügbar.',
+                $this->parentDayLabel()
+            ),
+            $slotRange->count() === 1 => sprintf(
+                'Freier Termin am %s um %s Uhr. Pro Lehrer kannst du einen Termin buchen.',
+                $this->parentDayLabel(),
+                $slotRange->first()
+            ),
+            default => sprintf(
                 'Freie Termine am %s von %s bis %s Uhr. Pro Lehrer kannst du einen Termin buchen.',
                 $this->parentDayLabel(),
                 $slotRange->first(),
                 $slotRange->last()
-            )
-            : sprintf(
-                'Am %s sind derzeit keine freien Termine verfügbar. Pro Lehrer ist eine Buchung möglich.',
-                $this->parentDayLabel()
-            );
+            ),
+        };
 
         return view('student.teacher-show', [
             'teacher' => $selectedTeacher,
@@ -1324,13 +1334,10 @@ class PortalController extends Controller
         ParentDay::ensureDefaultFromLegacy();
 
         $query = ParentDay::query()->orderBy('date');
+        $user = auth()->user();
 
-        if (! auth()->user()?->isAdminUser()) {
+        if (! $user?->isAdminUser() && ($user?->isStudentUser() || $user?->isTeacherUser())) {
             $query->whereDate('date', '>=', Carbon::today()->toDateString());
-        }
-
-        if (auth()->user()?->isStudentUser()) {
-            $query->whereHas('timeslots');
         }
 
         return $query->get();
@@ -1357,34 +1364,22 @@ class PortalController extends Controller
     {
         $this->ensureAdmin();
 
+        set_time_limit(300);
+
         $validated = $request->validate([
             'teacher_file' => 'required|file|mimes:xlsx,xls',
-            'create_timeslots' => 'nullable|boolean',
-            'timeslot_duration' => 'nullable|integer|min:5|max:120',
-            'timeslot_start' => 'nullable|date_format:H:i',
-            'timeslot_end' => 'nullable|date_format:H:i|after:timeslot_start',
-            'timeslot_room' => 'nullable|string|max:255',
+            'parent_day_ids' => 'required|array|min:1',
+            'parent_day_ids.*' => 'required|integer|distinct|exists:parent_days,id',
+            'timeslot_duration' => 'required|integer|min:5|max:120',
+            'timeslot_start' => 'required|date_format:H:i',
+            'timeslot_end' => 'required|date_format:H:i|after:timeslot_start',
+            'timeslot_room' => 'required|string|max:255',
         ]);
 
-        $createTimeslots = (bool) ($validated['create_timeslots'] ?? false);
-
-        if ($createTimeslots) {
-            $missing = collect(['timeslot_duration', 'timeslot_start', 'timeslot_end', 'timeslot_room'])
-                ->filter(fn (string $key) => empty($validated[$key] ?? null))
-                ->all();
-
-            if ($missing !== []) {
-                return redirect()
-                    ->route('admin.dashboard')
-                    ->with('error', 'Bitte alle Termin-Daten für den Import ausfüllen.');
-            }
-
-            if (! $this->currentParentDay()) {
-                return redirect()
-                    ->route('admin.dashboard')
-                    ->with('error', 'Bitte zuerst einen Elternsprechtag anlegen.');
-            }
-        }
+        $selectedParentDays = ParentDay::query()
+            ->whereIn('id', $validated['parent_day_ids'])
+            ->orderBy('date')
+            ->get();
 
         $file = $request->file('teacher_file');
 
@@ -1407,36 +1402,63 @@ class PortalController extends Controller
                 ->with('error', 'Die Excel-Datei enthält keine Daten.');
         }
 
-        $headerRow = array_shift($rows);
-        $headerMap = $this->mapImportHeaders($headerRow);
+        [$headerRow, $rows] = $this->locateImportHeaderRow($rows);
+        $headerMap = $headerRow ? $this->mapImportHeaders($headerRow) : [];
 
-        $colFirst = $this->resolveImportColumn($headerMap, ['vorname', 'first_name', 'firstname', 'first name']);
-        $colLast = $this->resolveImportColumn($headerMap, ['nachname', 'last_name', 'lastname', 'last name']);
-        $colKuerzel = $this->resolveImportColumn($headerMap, ['kuerzel', 'kuerzel', 'short', 'code']);
-        $colEmail = $this->resolveImportColumn($headerMap, ['email', 'e-mail', 'mail']);
-        $colClasses = $this->resolveImportColumn($headerMap, ['klassen', 'klassenliste', 'classes', 'class']);
+        $colFullName = $this->resolveImportColumn($headerMap, [
+            'lehrer', 'teacher', 'fullname', 'full name', 'lehrername', 'teacher_name',
+        ]);
+        $colFirst = $this->resolveImportColumn($headerMap, [
+            'vorname', 'first_name', 'firstname', 'first name', 'given name',
+        ]);
+        $colLast = $this->resolveImportColumn($headerMap, [
+            'nachname', 'last_name', 'lastname', 'last name', 'surname', 'family name',
+        ]);
+        $colKuerzel = $this->resolveImportColumn($headerMap, [
+            'kuerzel', 'kürzel', 'name', 'short', 'code', 'abbreviation',
+        ]);
+        $colEmail = $this->resolveImportColumn($headerMap, [
+            'email', 'e-mail', 'mail', 'email address', 'emailadresse',
+        ]);
+        $classColumns = $this->resolveImportColumns($headerMap, [
+            'klassen', 'klassenliste', 'classes', 'class', 'unterricht', 'fach',
+        ]);
 
-        if (! $colFirst || ! $colLast || (! $colKuerzel && ! $colEmail)) {
+        // Standardformat ohne erkannte Kopfzeile:
+        // A Kürzel, B Nachname, C Vorname, D Klassen.
+        if (! $headerRow) {
+            $colKuerzel = 'A';
+            $colLast = 'B';
+            $colFirst = 'C';
+            $classColumns = ['D'];
+        }
+
+        if ((! $colFullName && (! $colFirst || ! $colLast)) || (! $colKuerzel && ! $colEmail)) {
             return redirect()
                 ->route('admin.dashboard')
-                ->with('error', 'Die Excel-Datei muss Vorname, Nachname und Kürzel oder E-Mail enthalten.');
+                ->with('error', 'Die Excel-Datei muss Kürzel, Nachname und Vorname oder entsprechende benannte Spalten enthalten.');
         }
 
         $createdCount = 0;
         $updatedCount = 0;
         $skippedCount = 0;
-
-        $parentDay = $createTimeslots ? $this->currentParentDay() : null;
+        $createdTimeslotCount = 0;
+        $existingTimeslotCount = 0;
 
         foreach ($rows as $row) {
-            $firstName = trim((string) ($row[$colFirst] ?? ''));
-            $lastName = trim((string) ($row[$colLast] ?? ''));
+            $firstName = trim((string) ($colFirst ? ($row[$colFirst] ?? '') : ''));
+            $lastName = trim((string) ($colLast ? ($row[$colLast] ?? '') : ''));
+            $fullName = trim((string) ($colFullName ? ($row[$colFullName] ?? '') : ''));
             $kuerzel = trim((string) ($colKuerzel ? ($row[$colKuerzel] ?? '') : ''));
             $email = trim((string) ($colEmail ? ($row[$colEmail] ?? '') : ''));
-            $classRaw = trim((string) ($colClasses ? ($row[$colClasses] ?? '') : ''));
+            $classRaw = $this->extractClassColumnValues($row, $classColumns);
 
-            if ($firstName === '' && $lastName === '' && $kuerzel === '' && $email === '') {
+            if ($firstName === '' && $lastName === '' && $fullName === '' && $kuerzel === '' && $email === '') {
                 continue;
+            }
+
+            if (($firstName === '' || $lastName === '') && $fullName !== '') {
+                [$firstName, $lastName] = $this->splitName($fullName);
             }
 
             if ($email === '') {
@@ -1461,7 +1483,47 @@ class PortalController extends Controller
 
             $this->ensureSchoolClassesExist($normalizedClasses);
 
-            $user = User::firstOrNew(['email' => $email]);
+            $teacher = $kuerzel !== ''
+                ? Teacher::query()
+                    ->whereRaw('LOWER(kuerzel) = ?', [Str::lower($kuerzel)])
+                    ->first()
+                : null;
+
+            if (! $teacher) {
+                $teacherId = User::query()->where('email', $email)->value('teacher_id');
+                $teacher = $teacherId ? Teacher::find($teacherId) : null;
+            }
+
+            $teacherWasCreated = $teacher === null;
+
+            if ($teacherWasCreated) {
+                $teacher = Teacher::create([
+                    'teacher_id' => $this->nextTeacherId(),
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'kuerzel' => $kuerzel !== ''
+                        ? Str::upper($kuerzel)
+                        : $this->shortCode("{$firstName} {$lastName}"),
+                    'classes' => $normalizedClasses,
+                ]);
+            } else {
+                $teacher->update([
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'kuerzel' => $kuerzel !== '' ? Str::upper($kuerzel) : $teacher->kuerzel,
+                    'classes' => $normalizedClasses,
+                ]);
+            }
+
+            $userForTeacher = User::query()->where('teacher_id', $teacher->teacher_id)->first();
+            $userForEmail = User::query()->where('email', $email)->first();
+
+            if ($userForTeacher && $userForEmail && ! $userForTeacher->is($userForEmail)) {
+                $skippedCount++;
+                continue;
+            }
+
+            $user = $userForTeacher ?? $userForEmail ?? User::make(['email' => $email]);
             $alreadyExisted = $user->exists;
 
             if (! $alreadyExisted || blank($user->password)) {
@@ -1469,52 +1531,30 @@ class PortalController extends Controller
             }
 
             $user->name = trim("{$firstName} {$lastName}");
+            $user->email = $email;
             $user->is_teacher = true;
-
-            $teacherWasCreated = false;
-
-            if ($user->teacher_id === null) {
-                $teacher = Teacher::create([
-                    'teacher_id' => $this->nextTeacherId(),
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'kuerzel' => $kuerzel !== '' ? $kuerzel : $this->shortCode($user->name),
-                    'classes' => $normalizedClasses,
-                ]);
-
-                $user->teacher_id = $teacher->teacher_id;
-                $teacherWasCreated = true;
-            }
-
-            if ($user->teacher_id !== null) {
-                Teacher::query()
-                    ->where('teacher_id', $user->teacher_id)
-                    ->update([
-                        'first_name' => $firstName,
-                        'last_name' => $lastName,
-                        'kuerzel' => $kuerzel !== '' ? $kuerzel : $this->shortCode($user->name),
-                        'classes' => $normalizedClasses,
-                    ]);
-            }
-
+            $user->teacher_id = $teacher->teacher_id;
             $user->save();
 
-            if ($teacherWasCreated && $createTimeslots && $parentDay) {
+            foreach ($selectedParentDays as $parentDay) {
                 $this->upsertTeacherParentDaySetting(
-                    $user->teacher_id,
+                    $teacher->teacher_id,
                     $parentDay,
                     (int) $validated['timeslot_duration'],
                     false
                 );
 
-                $this->createTimeslotsForTeacher(
-                    $user->teacher_id,
+                $timeslotResult = $this->createGeneratedTimeslotsForTeacher(
+                    $teacher->teacher_id,
                     $parentDay,
                     $validated['timeslot_start'],
                     $validated['timeslot_end'],
                     (int) $validated['timeslot_duration'],
                     $validated['timeslot_room']
                 );
+
+                $createdTimeslotCount += $timeslotResult['created'];
+                $existingTimeslotCount += $timeslotResult['skipped'];
             }
 
             if ($alreadyExisted) {
@@ -1526,7 +1566,12 @@ class PortalController extends Controller
 
         return redirect()
             ->route('admin.dashboard')
-            ->with('success', "Import abgeschlossen. Neu: {$createdCount}, aktualisiert: {$updatedCount}, übersprungen: {$skippedCount}.");
+            ->with(
+                'success',
+                "Import abgeschlossen. Lehrer neu: {$createdCount}, aktualisiert: {$updatedCount}, "
+                ."übersprungen: {$skippedCount}. Termine neu: {$createdTimeslotCount}, "
+                ."bereits vorhanden: {$existingTimeslotCount}."
+            );
     }
 
     private function teacherAccessAccounts(): Collection
@@ -1662,12 +1707,81 @@ class PortalController extends Controller
     {
         foreach ($aliases as $alias) {
             $key = Str::of($alias)->lower()->trim()->value();
+            if ($key === '') {
+                continue;
+            }
+
             if (isset($headerMap[$key])) {
                 return $headerMap[$key];
             }
         }
 
+        foreach ($aliases as $alias) {
+            $key = Str::of($alias)->lower()->trim()->value();
+            if ($key === '') {
+                continue;
+            }
+
+            foreach ($headerMap as $label => $column) {
+                if (Str::contains($label, $key)) {
+                    return $column;
+                }
+            }
+        }
+
         return null;
+    }
+
+    private function resolveImportColumns(array $headerMap, array $aliases): array
+    {
+        $columns = [];
+
+        foreach ($headerMap as $label => $column) {
+            foreach ($aliases as $alias) {
+                $key = Str::of($alias)->lower()->trim()->value();
+
+                if ($key !== '' && ($label === $key || Str::contains($label, $key))) {
+                    $columns[] = $column;
+                    break;
+                }
+            }
+        }
+
+        return array_values(array_unique($columns));
+    }
+
+    private function locateImportHeaderRow(array $rows): array
+    {
+        $headerAliases = [
+            'vorname', 'nachname', 'first_name', 'last_name', 'firstname', 'lastname',
+            'lehrer', 'teacher', 'name', 'fullname', 'lehrername', 'teacher_name',
+            'kuerzel', 'kürzel', 'email', 'e-mail', 'mail', 'klassen', 'classes', 'class',
+        ];
+
+        foreach (array_slice($rows, 0, 10, true) as $rowNumber => $row) {
+            $headerMap = $this->mapImportHeaders($row);
+            $knownHeaders = collect($headerAliases)
+                ->map(fn (string $alias) => Str::of($alias)->lower()->trim()->value())
+                ->filter(fn (string $alias) => isset($headerMap[$alias]));
+
+            if ($knownHeaders->count() >= 2) {
+                return [$row, array_filter(
+                    $rows,
+                    fn ($key) => $key > $rowNumber,
+                    ARRAY_FILTER_USE_KEY
+                )];
+            }
+        }
+
+        return [null, $rows];
+    }
+
+    private function extractClassColumnValues(array $row, array $columns): string
+    {
+        return collect($columns)
+            ->map(fn (string $column) => trim((string) ($row[$column] ?? '')))
+            ->filter()
+            ->implode(' ');
     }
 
     private function emailFromKuerzel(string $kuerzel): string

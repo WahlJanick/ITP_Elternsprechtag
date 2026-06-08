@@ -34,19 +34,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Lehreransicht</span>
-                    <h2 class="panel-title">Gebuchte Termine</h2>
-                    <p class="panel-subtitle">
-                        Uhrzeit und Buchungsstatus auf einen Blick.
-                    </p>
-                    @if($teacher)
-                        <div class="button-row" style="margin-top: 12px;">
-                            <span class="badge">{{ $teacher->full_name }}</span>
-                            @if($teacher->kuerzel)
-                                <span class="badge">{{ $teacher->kuerzel }}</span>
-                            @endif
-                        </div>
-                    @endif
+                    <span class="eyebrow">Termine</span>
                 </div>
 
                 <button type="button" class="print-button" onclick="window.print()">Termine drucken</button>
@@ -66,19 +54,24 @@
                     <button type="button" class="filter-button" data-appointment-filter="booked">Gebucht</button>
                 </div>
 
-                <div class="appointments-list">
+                <div class="appointments-list teacher-appointments-grid">
                     @foreach($appointments as $appointment)
-                        <article class="appointment-row" data-appointment-status="{{ $appointment['is_reserved'] ? 'booked' : 'free' }}">
+                        <article class="appointment-row teacher-appointment-row" data-appointment-status="{{ $appointment['is_reserved'] ? 'booked' : 'free' }}">
                             <div class="appointment-time">{{ $appointment['time_label'] }}</div>
-                            <div class="appointment-main">
-                                @if($appointment['is_reserved'])
-                                    <p class="appointment-title">{{ $appointment['student_name'] }}</p>
-                                    <p class="appointment-meta">{{ $appointment['class_name'] }}</p>
-                                @endif
-                            </div>
                             <span class="status-chip {{ $appointment['is_reserved'] ? 'is-booked' : 'is-free' }}">
                                 {{ $appointment['is_reserved'] ? 'Gebucht' : 'Frei' }}
                             </span>
+                            @if($appointment['is_reserved'])
+                                <div class="appointment-main">
+                                    <p class="appointment-title">{{ $appointment['student_name'] }}</p>
+                                    <p class="appointment-meta">{{ $appointment['class_name'] }}</p>
+                                </div>
+                            @else
+                                <div class="appointment-main appointment-empty-copy" aria-hidden="true">
+                                    <p class="appointment-title">&nbsp;</p>
+                                    <p class="appointment-meta">&nbsp;</p>
+                                </div>
+                            @endif
                         </article>
                     @endforeach
                 </div>

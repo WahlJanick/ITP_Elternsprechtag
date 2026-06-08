@@ -208,36 +208,72 @@
 
             .parent-day-select {
                 display: grid;
-                grid-template-columns: auto minmax(160px, 1fr) auto;
+                grid-template-columns: auto minmax(175px, 1fr);
                 align-items: center;
-                gap: 8px 10px;
-                padding: 6px 10px;
-                border-radius: 10px;
-                border: 2px solid var(--header-link-border);
-                background: rgba(255, 255, 255, 0.16);
+                gap: 5px 10px;
+                padding: 7px 9px 7px 11px;
+                border-radius: 13px;
+                border: 1px solid rgba(255, 255, 255, 0.42);
+                background: rgba(255, 255, 255, 0.2);
                 color: var(--header-text);
                 font-weight: 600;
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+                    0 7px 18px rgba(14, 44, 86, 0.14);
+                transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+            }
+
+            .parent-day-select:hover,
+            .parent-day-select:focus-within {
+                border-color: rgba(255, 255, 255, 0.76);
+                background: rgba(255, 255, 255, 0.27);
+                box-shadow:
+                    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+                    0 9px 22px rgba(14, 44, 86, 0.2);
             }
 
             .parent-day-select .parent-day-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
                 font-size: 0.85rem;
                 text-transform: uppercase;
-                letter-spacing: 0.04em;
+                letter-spacing: 0.06em;
+                white-space: nowrap;
+            }
+
+            .parent-day-label svg {
+                width: 18px;
+                height: 18px;
+                flex: 0 0 18px;
             }
 
             .parent-day-select select {
                 width: 100%;
-                min-width: 160px;
-                padding: 6px 10px;
-                border-radius: 8px;
-                border: 2px solid color-mix(in srgb, var(--header-link-border) 70%, white);
+                min-width: 175px;
+                min-height: 38px;
+                padding: 6px 38px 6px 12px;
+                border-radius: 9px;
+                border: 1px solid color-mix(in srgb, var(--header-link-border) 62%, white);
                 background: var(--header-link-active-bg);
                 color: var(--header-link-copy);
                 font-weight: 700;
-                appearance: auto;
+                cursor: pointer;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173f7b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+                background-size: 18px;
+                outline: none;
+            }
+
+            .parent-day-select select:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
             }
 
             .parent-day-status {
+                grid-column: 1 / -1;
                 min-height: 18px;
                 display: flex;
                 align-items: center;
@@ -249,6 +285,10 @@
                 transform: translateY(-2px);
                 transition: opacity 0.18s ease, transform 0.18s ease;
                 pointer-events: none;
+            }
+
+            .parent-day-select:not(.is-loading):not(.is-done) .parent-day-status {
+                display: none;
             }
 
             .parent-day-select.is-loading .parent-day-status,
@@ -610,11 +650,20 @@
             .button svg,
             .print-button svg,
             .danger-button svg,
-            .ghost-button svg {
+            .ghost-button svg,
+            .filter-button svg,
+            .close-button svg,
+            .header-link svg {
                 width: 16px;
                 height: 16px;
                 margin-right: 6px;
                 flex-shrink: 0;
+            }
+
+            .close-button svg {
+                width: 22px;
+                height: 22px;
+                margin-right: 0;
             }
 
             .button {
@@ -664,6 +713,67 @@
 
             .list-stack {
                 gap: 14px;
+            }
+
+            .appointment-filter {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+
+            .filter-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 34px;
+                padding: 0 12px;
+                border: 2px solid var(--panel-stroke);
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.72);
+                color: var(--copy);
+                font-weight: 700;
+            }
+
+            .filter-button.is-active {
+                background: var(--accent);
+                color: var(--accent-copy);
+            }
+
+            [data-appointment-status][hidden] {
+                display: none;
+            }
+
+            .compact-settings-panel {
+                padding: 12px 16px;
+            }
+
+            .compact-settings-form {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .compact-settings-form input {
+                width: 76px;
+                min-height: 34px;
+                padding: 0 8px;
+                border: 2px solid var(--panel-stroke);
+                border-radius: 8px;
+                background: white;
+                color: var(--copy);
+                font: inherit;
+                font-weight: 700;
+            }
+
+            .teacher-navigation {
+                padding: 12px;
+            }
+
+            .teacher-navigation .tile {
+                min-height: 90px;
+                padding: 10px;
             }
 
             .list-row {
@@ -1109,6 +1219,102 @@
                 flex-wrap: wrap;
             }
 
+            .teacher-appointments-grid {
+                grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+                gap: 12px;
+            }
+
+            .teacher-appointment-row {
+                display: grid;
+                grid-template-columns: 1fr;
+                align-content: start;
+                gap: 8px;
+                min-height: 150px;
+                padding: 12px;
+                border-color: #d9c36a;
+                background: #fff1a8;
+            }
+
+            .teacher-appointment-row[data-appointment-status="free"] {
+                border-color: color-mix(in srgb, var(--panel-stroke) 55%, white);
+                background: #ffffff;
+                box-shadow: 0 7px 16px rgba(38, 73, 128, 0.08);
+            }
+
+            .teacher-appointment-row .appointment-time {
+                width: 100%;
+                min-height: 36px;
+                padding: 0 8px;
+                border-radius: 8px;
+                font-size: 1.05rem;
+            }
+
+            .teacher-appointment-row .status-chip {
+                width: 100%;
+                min-height: 28px;
+            }
+
+            .teacher-appointment-row .status-chip.is-booked {
+                border-color: #c99c22;
+                background: #f2c94c;
+                color: #5f4500;
+            }
+
+            .teacher-appointment-row .appointment-main {
+                gap: 2px;
+                padding-top: 2px;
+                text-align: center;
+            }
+
+            .teacher-appointment-row .appointment-title,
+            .teacher-appointment-row .appointment-meta {
+                font-size: 0.88rem;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+
+            .teacher-appointment-row .appointment-meta {
+                font-weight: 700;
+            }
+
+            .appointment-empty-copy {
+                visibility: hidden;
+                user-select: none;
+            }
+
+            .admin-menu-launcher {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+            }
+
+            .admin-menu-button {
+                min-height: 82px;
+                flex-direction: column;
+                gap: 6px;
+                padding: 12px;
+                text-align: center;
+            }
+
+            .admin-menu-button svg {
+                width: 22px;
+                height: 22px;
+                margin-right: 0;
+            }
+
+            .admin-menu-button.is-active {
+                background: var(--accent);
+                color: var(--accent-copy);
+            }
+
+            [data-admin-menu][hidden] {
+                display: none;
+            }
+
+            [data-admin-menu] [data-collapsible-toggle] {
+                display: none;
+            }
+
             @media (max-width: 860px) {
                 .hero-grid,
                 .filters {
@@ -1186,8 +1392,14 @@
                             data-parent-day-form
                         >
                             <?php echo csrf_field(); ?>
-                            <span class="parent-day-label">Tag</span>
-                            <select name="parent_day_id" data-parent-day-select onchange="this.form.submit()">
+                            <span class="parent-day-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                                    <path d="M16 3v4M8 3v4M3 10h18"></path>
+                                </svg>
+                                Sprechtag
+                            </span>
+                            <select id="parent_day_id" name="parent_day_id" aria-label="Elternsprechtag auswählen" data-parent-day-select onchange="this.form.submit()">
                                 <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option
                                         value="<?php echo e($day->id); ?>"
@@ -1259,22 +1471,56 @@
             (() => {
                 const parentDayForm = document.querySelector('[data-parent-day-form]');
 
-                if (!parentDayForm) {
-                    return;
+                if (parentDayForm) {
+                    const select = parentDayForm.querySelector('[data-parent-day-select]');
+
+                    select?.addEventListener('change', () => {
+                        parentDayForm.classList.remove('is-done');
+                        parentDayForm.classList.add('is-loading');
+                    });
+
+                    if (parentDayForm.classList.contains('is-done')) {
+                        window.setTimeout(() => {
+                            parentDayForm.classList.remove('is-done');
+                        }, 1800);
+                    }
                 }
 
-                const select = parentDayForm.querySelector('[data-parent-day-select]');
+                document.querySelectorAll('[data-appointment-filters]').forEach((filterGroup) => {
+                    const panel = filterGroup.closest('.panel');
+                    const appointments = panel?.querySelectorAll('[data-appointment-status]') ?? [];
 
-                select?.addEventListener('change', () => {
-                    parentDayForm.classList.remove('is-done');
-                    parentDayForm.classList.add('is-loading');
+                    filterGroup.querySelectorAll('[data-appointment-filter]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const filter = button.dataset.appointmentFilter;
+
+                            filterGroup.querySelectorAll('[data-appointment-filter]').forEach((item) => {
+                                item.classList.toggle('is-active', item === button);
+                            });
+
+                            appointments.forEach((appointment) => {
+                                appointment.hidden = filter !== 'all'
+                                    && appointment.dataset.appointmentStatus !== filter;
+                            });
+                        });
+                    });
                 });
 
-                if (parentDayForm.classList.contains('is-done')) {
-                    window.setTimeout(() => {
-                        parentDayForm.classList.remove('is-done');
-                    }, 1800);
-                }
+                const defaultIcon = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14"></path>
+                        <path d="M13 6l6 6-6 6"></path>
+                    </svg>
+                `;
+
+                document.querySelectorAll(
+                    'button, a.button, a.ghost-button, a.danger-button, a.print-button, a.header-link'
+                ).forEach((control) => {
+                    if (!control.querySelector('svg')) {
+                        control.insertAdjacentHTML('afterbegin', defaultIcon);
+                    }
+                });
             })();
         </script>
     </body>

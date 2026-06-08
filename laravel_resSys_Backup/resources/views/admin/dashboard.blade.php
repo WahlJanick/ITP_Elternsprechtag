@@ -3,19 +3,53 @@
     'roleTitle' => 'Admin-Ansicht',
     'theme' => 'admin',
     'homeRoute' => 'admin.dashboard',
-    'navLinks' => [
-        ['label' => 'Übersicht', 'href' => route('admin.dashboard').'#dashboard', 'badge' => $teacherDurationChangeCount ?: null],
-        ['label' => 'Sprechtage', 'href' => route('admin.dashboard').'#parent-day'],
-        ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Klassen & Räume', 'href' => route('admin.dashboard').'#classes'],
-        ['label' => 'Import', 'href' => route('admin.dashboard').'#excel-import'],
-    ],
+    'navLinks' => [],
 ])
 
 @section('content')
     <div class="stack">
+        <section class="panel">
+            <div class="admin-menu-launcher" role="navigation" aria-label="Admin-Menüs">
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="overview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                    Übersicht
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="parent-day">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                        <path d="M16 3v4M8 3v4M3 10h18"></path>
+                    </svg>
+                    Sprechtage
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="teachers">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M2 21v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v2M19 8v6M22 11h-6"></path>
+                    </svg>
+                    Lehrer
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="organization">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h.01M15 10h.01M9 14h.01M15 14h.01M10 21v-3h4v3"></path>
+                    </svg>
+                    Klassen & Räume
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="import">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path>
+                    </svg>
+                    Import
+                </button>
+            </div>
+        </section>
+
         @if($teacherDurationChangeCount > 0)
-            <section class="notification-banner">
+            <section class="notification-banner" data-admin-menu="overview" hidden>
                 <div class="notification-banner-copy">
                     <strong>
                         {{ $teacherDurationChangeCount }} Lehrer {{ $teacherDurationChangeCount === 1 ? 'hat' : 'haben' }}
@@ -33,7 +67,7 @@
             </section>
         @endif
 
-        <section class="panel section-anchor" id="dashboard">
+        <section class="panel section-anchor" id="dashboard" data-admin-menu="overview" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Dashboard <span class="badge">{{ $parentDayLabel }}</span></h2>
@@ -60,7 +94,7 @@
             </div>
         </section>
 
-        <section class="panel section-anchor teacher-activity-panel" id="teacher-activity">
+        <section class="panel section-anchor teacher-activity-panel" id="teacher-activity" data-admin-menu="overview" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehreraktivitäten</h2>
@@ -133,7 +167,7 @@
             @endif
         </section>
 
-        <section class="panel section-anchor" id="parent-day">
+        <section class="panel section-anchor" id="parent-day" data-admin-menu="parent-day" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Datumfestlegung</h2>
@@ -197,7 +231,7 @@
             @endif
         </section>
 
-        <section class="panel section-anchor" id="teachers">
+        <section class="panel section-anchor" id="teachers" data-admin-menu="teachers" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehrer</h2>
@@ -263,7 +297,7 @@
             @endif
         </section>
 
-        <section class="panel">
+        <section class="panel" id="teacher-create" data-admin-menu="teachers" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehrer anlegen</h2>
@@ -392,7 +426,7 @@
             </form>
         </section>
 
-        <section class="panel section-anchor" id="classes" data-collapsible data-collapsed="true">
+        <section class="panel section-anchor" id="classes" data-admin-menu="organization" data-collapsible data-collapsed="false" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Schulklassen</h2>
@@ -455,7 +489,7 @@
             </div>
         </section>
 
-        <section class="panel section-anchor" id="rooms" data-collapsible data-collapsed="true">
+        <section class="panel section-anchor" id="rooms" data-admin-menu="organization" data-collapsible data-collapsed="false" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Räume</h2>
@@ -518,7 +552,7 @@
             </div>
         </section>
 
-        <section class="panel section-anchor" id="excel-import" data-collapsible data-collapsed="true">
+        <section class="panel section-anchor" id="excel-import" data-admin-menu="import" data-collapsible data-collapsed="false" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Excel-Import</h2>
@@ -547,86 +581,89 @@
                             accept=".xlsx,.xls"
                             required
                         />
+                        <p class="hint">
+                            Unterstützt benannte Spalten sowie das Standardformat:
+                            A Kürzel, B Nachname, C Vorname, D Klassen.
+                        </p>
                     </div>
 
-                    @if($canGenerateTimeslots)
-                        <div class="field field-inline">
-                            <label for="create_timeslots">Termine direkt anlegen</label>
-                            <div class="field-inline-row">
-                                <label class="class-chip" style="padding: 6px 10px;">
-                                    <input id="create_timeslots" type="checkbox" name="create_timeslots" />
-                                    <span>Standard-Termine erzeugen</span>
-                                </label>
+                    <div class="field">
+                        <label>Elternsprechtage für die importierten Lehrer</label>
+                        @if($parentDays->isEmpty())
+                            <p class="empty-copy">Bitte zuerst mindestens einen Elternsprechtag anlegen.</p>
+                        @else
+                            <div class="class-grid-compact import-parent-days">
+                                @foreach($parentDays as $day)
+                                    <label class="class-chip">
+                                        <input
+                                            type="checkbox"
+                                            name="parent_day_ids[]"
+                                            value="{{ $day->id }}"
+                                            @checked(in_array($day->id, old('parent_day_ids', [$activeParentDay?->id]), true))
+                                        />
+                                        <span>{{ $day->date->format('d.m.Y') }}</span>
+                                    </label>
+                                @endforeach
                             </div>
+                            <p class="hint">Wähle alle Tage aus, an denen diese Lehrer Termine erhalten sollen.</p>
+                        @endif
+                    </div>
+
+                    <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <div class="field">
+                            <label for="import_timeslot_duration">Standard-Termindauer</label>
+                            <input
+                                id="import_timeslot_duration"
+                                type="number"
+                                name="timeslot_duration"
+                                min="5"
+                                max="120"
+                                step="5"
+                                value="{{ old('timeslot_duration', 10) }}"
+                                required
+                            />
+                            <p class="hint">Dauer eines Termins in Minuten.</p>
                         </div>
 
-                        <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));" data-import-timeslots>
-                            <div class="field">
-                                <label for="import_timeslot_duration">Termin-Dauer in Minuten</label>
-                                <input
-                                    id="import_timeslot_duration"
-                                    type="number"
-                                    name="timeslot_duration"
-                                    min="5"
-                                    step="5"
-                                    value="{{ old('timeslot_duration', '') }}"
-                                    placeholder="z.B. 10"
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_parent_day">Datum des Elternsprechtags</label>
-                                <input
-                                    id="import_timeslot_parent_day"
-                                    type="text"
-                                    value="{{ $parentDayLabel }}"
-                                    readonly
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_start">Beginn</label>
-                                <input
-                                    id="import_timeslot_start"
-                                    type="time"
-                                    name="timeslot_start"
-                                    value="{{ old('timeslot_start', '') }}"
-                                    min="00:00"
-                                    max="23:59"
-                                    step="60"
-                                    lang="de-AT"
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_end">Ende</label>
-                                <input
-                                    id="import_timeslot_end"
-                                    type="time"
-                                    name="timeslot_end"
-                                    value="{{ old('timeslot_end', '') }}"
-                                    min="00:00"
-                                    max="23:59"
-                                    step="60"
-                                    lang="de-AT"
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_room">Raum</label>
-                                <input
-                                    id="import_timeslot_room"
-                                    type="text"
-                                    name="timeslot_room"
-                                    value="{{ old('timeslot_room', '') }}"
-                                    placeholder="z.B. B201"
-                                />
-                            </div>
+                        <div class="field">
+                            <label for="import_timeslot_start">Beginn</label>
+                            <input
+                                id="import_timeslot_start"
+                                type="time"
+                                name="timeslot_start"
+                                value="{{ old('timeslot_start', '17:00') }}"
+                                step="60"
+                                required
+                            />
                         </div>
-                    @endif
+
+                        <div class="field">
+                            <label for="import_timeslot_end">Ende</label>
+                            <input
+                                id="import_timeslot_end"
+                                type="time"
+                                name="timeslot_end"
+                                value="{{ old('timeslot_end', '19:00') }}"
+                                step="60"
+                                required
+                            />
+                        </div>
+
+                        <div class="field">
+                            <label for="import_timeslot_room">Raum</label>
+                            <input
+                                id="import_timeslot_room"
+                                type="text"
+                                name="timeslot_room"
+                                value="{{ old('timeslot_room', '') }}"
+                                placeholder="z.B. B201"
+                                required
+                            />
+                        </div>
+                    </div>
 
                     <div class="button-row">
-                        <button type="submit" class="button">Import starten</button>
+                        <button type="submit" class="button" @disabled($parentDays->isEmpty())>Import starten</button>
                     </div>
                 </form>
             </div>
@@ -671,6 +708,49 @@
 
     <script>
         (function () {
+            const adminMenuButtons = Array.from(document.querySelectorAll('[data-admin-menu-button]'));
+            const adminMenus = Array.from(document.querySelectorAll('[data-admin-menu]'));
+            const hashMenus = {
+                dashboard: 'overview',
+                'teacher-activity': 'overview',
+                'parent-day': 'parent-day',
+                teachers: 'teachers',
+                'teacher-create': 'teachers',
+                classes: 'organization',
+                rooms: 'organization',
+                'excel-import': 'import',
+            };
+
+            const openAdminMenu = (menuName, updateHash = false) => {
+                adminMenus.forEach((menu) => {
+                    menu.hidden = menu.dataset.adminMenu !== menuName;
+                });
+
+                adminMenuButtons.forEach((button) => {
+                    const active = button.dataset.adminMenuButton === menuName;
+                    button.classList.toggle('is-active', active);
+                    button.setAttribute('aria-pressed', String(active));
+                });
+
+                if (updateHash) {
+                    const target = adminMenus.find((menu) => menu.dataset.adminMenu === menuName && menu.id);
+                    if (target) {
+                        history.replaceState(null, '', `#${target.id}`);
+                    }
+                }
+            };
+
+            adminMenuButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    openAdminMenu(button.dataset.adminMenuButton, true);
+                });
+            });
+
+            const initialHash = window.location.hash.slice(1);
+            if (hashMenus[initialHash]) {
+                openAdminMenu(hashMenus[initialHash]);
+            }
+
             const wizard = document.querySelector('[data-wizard="teacher"]');
             if (wizard) {
                 const steps = Array.from(wizard.querySelectorAll('[data-step]'));
@@ -704,24 +784,6 @@
                 });
 
                 render();
-            }
-
-            const importForm = document.querySelector('[data-import]');
-            if (importForm) {
-                const toggle = importForm.querySelector('#create_timeslots');
-                const timeslotFields = importForm.querySelectorAll('[data-import-timeslots] input');
-
-                const sync = () => {
-                    const enabled = toggle && toggle.checked;
-                    timeslotFields.forEach((field) => {
-                        field.disabled = !enabled;
-                    });
-                };
-
-                if (toggle) {
-                    toggle.addEventListener('change', sync);
-                    sync();
-                }
             }
 
             const collapsibles = document.querySelectorAll('[data-collapsible]');

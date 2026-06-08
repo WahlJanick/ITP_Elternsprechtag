@@ -1,7 +1,47 @@
 <?php $__env->startSection('content'); ?>
     <div class="stack">
+        <section class="panel">
+            <div class="admin-menu-launcher" role="navigation" aria-label="Admin-Menüs">
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="overview">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                    </svg>
+                    Übersicht
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="parent-day">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                        <path d="M16 3v4M8 3v4M3 10h18"></path>
+                    </svg>
+                    Sprechtage
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="teachers">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M2 21v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v2M19 8v6M22 11h-6"></path>
+                    </svg>
+                    Lehrer
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="organization">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h.01M15 10h.01M9 14h.01M15 14h.01M10 21v-3h4v3"></path>
+                    </svg>
+                    Klassen & Räume
+                </button>
+                <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="import">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path>
+                    </svg>
+                    Import
+                </button>
+            </div>
+        </section>
+
         <?php if($teacherDurationChangeCount > 0): ?>
-            <section class="notification-banner">
+            <section class="notification-banner" data-admin-menu="overview" hidden>
                 <div class="notification-banner-copy">
                     <strong>
                         <?php echo e($teacherDurationChangeCount); ?> Lehrer <?php echo e($teacherDurationChangeCount === 1 ? 'hat' : 'haben'); ?>
@@ -20,7 +60,7 @@
             </section>
         <?php endif; ?>
 
-        <section class="panel section-anchor" id="dashboard">
+        <section class="panel section-anchor" id="dashboard" data-admin-menu="overview" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Dashboard <span class="badge"><?php echo e($parentDayLabel); ?></span></h2>
@@ -47,7 +87,7 @@
             </div>
         </section>
 
-        <section class="panel section-anchor teacher-activity-panel" id="teacher-activity">
+        <section class="panel section-anchor teacher-activity-panel" id="teacher-activity" data-admin-menu="overview" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehreraktivitäten</h2>
@@ -121,7 +161,7 @@
             <?php endif; ?>
         </section>
 
-        <section class="panel section-anchor" id="parent-day">
+        <section class="panel section-anchor" id="parent-day" data-admin-menu="parent-day" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Datumfestlegung</h2>
@@ -186,7 +226,7 @@
             <?php endif; ?>
         </section>
 
-        <section class="panel section-anchor" id="teachers">
+        <section class="panel section-anchor" id="teachers" data-admin-menu="teachers" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehrer</h2>
@@ -252,7 +292,7 @@
             <?php endif; ?>
         </section>
 
-        <section class="panel">
+        <section class="panel" id="teacher-create" data-admin-menu="teachers" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehrer anlegen</h2>
@@ -382,7 +422,7 @@
             </form>
         </section>
 
-        <section class="panel section-anchor" id="classes" data-collapsible data-collapsed="true">
+        <section class="panel section-anchor" id="classes" data-admin-menu="organization" data-collapsible data-collapsed="false" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Schulklassen</h2>
@@ -445,7 +485,7 @@
             </div>
         </section>
 
-        <section class="panel section-anchor" id="rooms" data-collapsible data-collapsed="true">
+        <section class="panel section-anchor" id="rooms" data-admin-menu="organization" data-collapsible data-collapsed="false" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Räume</h2>
@@ -508,7 +548,7 @@
             </div>
         </section>
 
-        <section class="panel section-anchor" id="excel-import" data-collapsible data-collapsed="true">
+        <section class="panel section-anchor" id="excel-import" data-admin-menu="import" data-collapsible data-collapsed="false" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Excel-Import</h2>
@@ -537,6 +577,10 @@
                             accept=".xlsx,.xls"
                             required
                         />
+                        <p class="hint">
+                            Unterstützt benannte Spalten sowie das Standardformat:
+                            A Kürzel, B Nachname, C Vorname, D Klassen.
+                        </p>
                     </div>
 
                     <?php if($canGenerateTimeslots): ?>
@@ -661,6 +705,49 @@
 
     <script>
         (function () {
+            const adminMenuButtons = Array.from(document.querySelectorAll('[data-admin-menu-button]'));
+            const adminMenus = Array.from(document.querySelectorAll('[data-admin-menu]'));
+            const hashMenus = {
+                dashboard: 'overview',
+                'teacher-activity': 'overview',
+                'parent-day': 'parent-day',
+                teachers: 'teachers',
+                'teacher-create': 'teachers',
+                classes: 'organization',
+                rooms: 'organization',
+                'excel-import': 'import',
+            };
+
+            const openAdminMenu = (menuName, updateHash = false) => {
+                adminMenus.forEach((menu) => {
+                    menu.hidden = menu.dataset.adminMenu !== menuName;
+                });
+
+                adminMenuButtons.forEach((button) => {
+                    const active = button.dataset.adminMenuButton === menuName;
+                    button.classList.toggle('is-active', active);
+                    button.setAttribute('aria-pressed', String(active));
+                });
+
+                if (updateHash) {
+                    const target = adminMenus.find((menu) => menu.dataset.adminMenu === menuName && menu.id);
+                    if (target) {
+                        history.replaceState(null, '', `#${target.id}`);
+                    }
+                }
+            };
+
+            adminMenuButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    openAdminMenu(button.dataset.adminMenuButton, true);
+                });
+            });
+
+            const initialHash = window.location.hash.slice(1);
+            if (hashMenus[initialHash]) {
+                openAdminMenu(hashMenus[initialHash]);
+            }
+
             const wizard = document.querySelector('[data-wizard="teacher"]');
             if (wizard) {
                 const steps = Array.from(wizard.querySelectorAll('[data-step]'));
@@ -861,13 +948,5 @@
     'roleTitle' => 'Admin-Ansicht',
     'theme' => 'admin',
     'homeRoute' => 'admin.dashboard',
-    'navLinks' => [
-        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
-        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity', 'badge' => $teacherDurationChangeCount ?: null],
-        ['label' => 'Datumfestlegung', 'href' => route('admin.dashboard').'#parent-day'],
-        ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Schulklassen', 'href' => route('admin.dashboard').'#classes'],
-        ['label' => 'Räume', 'href' => route('admin.dashboard').'#rooms'],
-        ['label' => 'Excel-Import', 'href' => route('admin.dashboard').'#excel-import'],
-    ],
+    'navLinks' => [],
 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /var/www/resources/views/admin/dashboard.blade.php ENDPATH**/ ?>

@@ -17,9 +17,7 @@
             </div>
 
             <div class="hero-grid">
-                <div class="panel panel-strong">
-                    <span class="eyebrow">Übersicht</span>
-                    <div class="summary-grid">
+                <div class="summary-grid">
                         <article class="stat-card">
                             <span class="number"><?php echo e($summary['count']); ?></span>
                             <span class="mini-label">Gebuchte Termine</span>
@@ -28,15 +26,6 @@
                             <span class="number"><?php echo e($summary['assigned_teacher_count']); ?></span>
                             <span class="mini-label">Lehrer deiner Klasse</span>
                         </article>
-                    </div>
-                </div>
-
-                <div class="panel panel-strong">
-                    <span class="eyebrow">Gebuchte Lehrer</span>
-                    <p class="hero-copy">
-                        <?php echo e($summary['teacher_names'] ?: 'Noch keine Termine gebucht.'); ?>
-
-                    </p>
                 </div>
             </div>
         </section>
