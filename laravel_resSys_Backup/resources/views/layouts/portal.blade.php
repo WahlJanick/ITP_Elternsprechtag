@@ -133,17 +133,12 @@
             }
 
             .page-title {
-                margin: 0;
-                color: var(--header-text);
-                font-size: clamp(1.8rem, 4vw, 2.7rem);
-                font-weight: 800;
-                letter-spacing: 0.01em;
-                text-shadow: 0 2px 0 rgba(10, 37, 75, 0.12);
+                display: none;
             }
 
             .header-actions {
                 margin-left: auto;
-                padding-right: 76px;
+                padding-right: 80px;
                 display: flex;
                 align-items: center;
                 gap: 10px;
@@ -311,7 +306,7 @@
             }
 
             .slot-grid {
-                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
             }
 
             .tile,
@@ -471,7 +466,7 @@
 
             .slot-button small {
                 color: var(--muted);
-                font-size: 0.76rem;
+                font-size: 0.68rem;
                 font-weight: 600;
             }
 
@@ -829,26 +824,86 @@
 
             @media (max-width: 640px) {
                 .header-inner {
-                    gap: 12px;
+                    position: relative;
+                    padding: 8px 110px 8px 12px;
+                    gap: 8px;
+                    flex-wrap: nowrap;
+                    align-items: center;
+                    min-height: 72px;
                 }
 
-                .page-title {
-                    font-size: 1.55rem;
+                .logo-link img {
+                    height: 52px;
                 }
 
                 .header-actions {
-                    width: 100%;
-                    margin-left: 0;
+                    margin-left: 8px;
                     padding-right: 0;
-                    padding-bottom: 4px;
+                    gap: 6px;
+                    flex-wrap: nowrap;
+                    width: auto;
+                }
+
+                .header-link {
+                    min-height: 36px;
+                    padding: 0 12px;
+                    font-size: 0.9rem;
+                }
+
+                .logout-link {
+                    position: absolute;
+                    right: 62px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 40px;
+                    min-width: 40px;
+                    min-height: 40px;
+                }
+
+                .logout-link svg {
+                    width: 20px;
+                    height: 20px;
                 }
 
                 .user-badge {
-                    right: 16px;
+                    position: absolute;
+                    right: 12px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    bottom: auto;
+                    width: 46px;
+                    height: 46px;
+                    font-size: 0.95rem;
+                    border: 2px solid var(--panel-stroke);
+                    box-shadow: none;
+                }
+
+                .hero-actions {
+                    flex-direction: column;
+                    align-items: stretch;
+                    width: 100%;
+                }
+
+                .hero-actions .button,
+                .hero-actions .ghost-button {
+                    width: 100%;
+                    min-height: 46px;
+                }
+
+                .panel-header {
+                    flex-wrap: wrap;
+                    gap: 12px;
+                }
+
+                .panel-header > .ghost-button,
+                .panel-header > .button {
+                    width: 100%;
+                    justify-content: center;
+                    min-height: 44px;
                 }
 
                 .page-content {
-                    margin-top: 30px;
+                    margin-top: 16px;
                 }
 
                 .panel,
@@ -861,6 +916,11 @@
                 .class-create-row {
                     flex-wrap: wrap;
                 }
+
+                .hide-mobile {
+                    display: none !important;
+                }
+
             }
         </style>
     </head>
@@ -871,7 +931,6 @@
                     <img src="{{ asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png') }}" alt="HTL Waidhofen" style="height: 60px; background: white; padding: 6px; border-radius: 4px;">
                 </a>
 
-                <h1 class="page-title">{{ $roleTitle ?? 'Portal-Ansicht' }}</h1>
 
                 <nav class="header-actions" aria-label="Seitennavigation">
                     @foreach(($navLinks ?? []) as $link)

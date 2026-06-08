@@ -27,31 +27,15 @@
                 </div>
             </div>
 
-            <div class="hero-grid">
-                <div class="panel panel-strong">
-                    <span class="eyebrow">Übersicht</span>
-                    <div class="summary-grid">
-                        <article class="stat-card">
-                            <span class="number">{{ $summary['count'] }}</span>
-                            <span class="mini-label">Gebuchte Termine</span>
-                        </article>
-                        <article class="stat-card">
-                            <span class="number">{{ $summary['assigned_teacher_count'] }}</span>
-                            <span class="mini-label">Lehrer deiner Klasse</span>
-                        </article>
-                    </div>
-                </div>
-
-                <div class="panel panel-strong">
-                    <span class="eyebrow">Gebuchte Lehrer</span>
-                    <p class="hero-copy">
-                        {{ $summary['teacher_names'] ?: 'Noch keine Termine gebucht.' }}
-                    </p>
-                    <div class="button-row" style="margin-top: 16px;">
-                        <span class="badge">Max. 1 Termin pro Lehrer</span>
-                        <span class="badge">Azure-Login aktiv</span>
-                    </div>
-                </div>
+            <div class="summary-grid">
+                <article class="stat-card">
+                    <span class="number">{{ $summary['count'] }}</span>
+                    <span class="mini-label">Gebuchte Termine</span>
+                </article>
+                <article class="stat-card">
+                    <span class="number">{{ $summary['assigned_teacher_count'] }}</span>
+                    <span class="mini-label">Lehrer deiner Klasse</span>
+                </article>
             </div>
         </section>
 

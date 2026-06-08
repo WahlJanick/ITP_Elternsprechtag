@@ -10,9 +10,11 @@
             body {
                 margin: 0;
                 min-height: 100vh;
-                display: grid;
-                place-items: center;
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
                 padding: 24px;
+                padding-top: max(24px, 10vh);
                 background:
                     radial-gradient(circle at top, rgba(29, 92, 181, 0.16), transparent 35%),
                     linear-gradient(180deg, #fbfdff 0%, #eef4ff 100%);
