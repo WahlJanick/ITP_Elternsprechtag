@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>HtlWY-Elternsprechtag</title>
-        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
+        <link rel="icon" type="image/png" href="<?php echo e(asset('favicon.png')); ?>">
+        <link rel="shortcut icon" href="<?php echo e(asset('favicon.png')); ?>">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
         <style>
@@ -87,14 +87,15 @@
         <div class="login-box">
             <h1>Anmeldung</h1>
 
-            <a href="{{ url('/auth/azure') }}" class="login-btn">
+            <a href="<?php echo e(url('/auth/azure')); ?>" class="login-btn">
                 Mit Microsoft anmelden
             </a>
 
 
-            @if(session('error'))
-                <div class="error">{{ session('error') }}</div>
-            @endif
+            <?php if(session('error')): ?>
+                <div class="error"><?php echo e(session('error')); ?></div>
+            <?php endif; ?>
         </div>
     </body>
 </html>
+<?php /**PATH /var/www/resources/views/anmelden.blade.php ENDPATH**/ ?>

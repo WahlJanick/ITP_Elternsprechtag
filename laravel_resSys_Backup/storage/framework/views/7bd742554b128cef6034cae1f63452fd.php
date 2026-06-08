@@ -1,25 +1,12 @@
-@extends('layouts.portal', [
-    'pageTitle' => 'Admin-Übersicht',
-    'roleTitle' => 'Admin-Ansicht',
-    'theme' => 'admin',
-    'homeRoute' => 'admin.dashboard',
-    'navLinks' => [
-        ['label' => 'Übersicht', 'href' => route('admin.dashboard').'#dashboard', 'badge' => $teacherDurationChangeCount ?: null],
-        ['label' => 'Sprechtage', 'href' => route('admin.dashboard').'#parent-day'],
-        ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Klassen & Räume', 'href' => route('admin.dashboard').'#classes'],
-        ['label' => 'Import', 'href' => route('admin.dashboard').'#excel-import'],
-    ],
-])
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="stack">
-        @if($teacherDurationChangeCount > 0)
+        <?php if($teacherDurationChangeCount > 0): ?>
             <section class="notification-banner">
                 <div class="notification-banner-copy">
                     <strong>
-                        {{ $teacherDurationChangeCount }} Lehrer {{ $teacherDurationChangeCount === 1 ? 'hat' : 'haben' }}
-                        {{ $teacherDurationChangeCount === 1 ? 'seine' : 'ihre' }} Termindauer angepasst.
+                        <?php echo e($teacherDurationChangeCount); ?> Lehrer <?php echo e($teacherDurationChangeCount === 1 ? 'hat' : 'haben'); ?>
+
+                        <?php echo e($teacherDurationChangeCount === 1 ? 'seine' : 'ihre'); ?> Termindauer angepasst.
                     </strong>
                 </div>
 
@@ -31,30 +18,30 @@
                     Zu Lehreraktivitäten
                 </a>
             </section>
-        @endif
+        <?php endif; ?>
 
         <section class="panel section-anchor" id="dashboard">
             <div class="panel-header">
                 <div>
-                    <h2 class="panel-title">Dashboard <span class="badge">{{ $parentDayLabel }}</span></h2>
+                    <h2 class="panel-title">Dashboard <span class="badge"><?php echo e($parentDayLabel); ?></span></h2>
                 </div>
             </div>
 
             <div class="stats-grid">
                 <article class="stat-card">
-                    <span class="number">{{ $stats['students'] }}</span>
+                    <span class="number"><?php echo e($stats['students']); ?></span>
                     <span class="mini-label">Schüler gesamt</span>
                 </article>
                 <article class="stat-card">
-                    <span class="number">{{ $stats['teachers'] }}</span>
+                    <span class="number"><?php echo e($stats['teachers']); ?></span>
                     <span class="mini-label">Lehrer gesamt</span>
                 </article>
                 <article class="stat-card">
-                    <span class="number">{{ $stats['free_slots'] }}</span>
+                    <span class="number"><?php echo e($stats['free_slots']); ?></span>
                     <span class="mini-label">Freie Termine</span>
                 </article>
                 <article class="stat-card">
-                    <span class="number">{{ $stats['booked_slots'] }}</span>
+                    <span class="number"><?php echo e($stats['booked_slots']); ?></span>
                     <span class="mini-label">Gebuchte Termine</span>
                 </article>
             </div>
@@ -66,10 +53,10 @@
                     <h2 class="panel-title">Lehreraktivitäten</h2>
                 </div>
 
-                @if($teacherDurationChanges->isNotEmpty())
+                <?php if($teacherDurationChanges->isNotEmpty()): ?>
                     <div class="teacher-mini-actions teacher-activity-toolbar">
-                        <form method="POST" action="{{ route('admin.teachers.activities.delete-all') }}">
-                            @csrf
+                        <form method="POST" action="<?php echo e(route('admin.teachers.activities.delete-all')); ?>">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="danger-button button-compact">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M3 6h18"></path>
@@ -82,27 +69,28 @@
                             </button>
                         </form>
                     </div>
-                @endif
+                <?php endif; ?>
             </div>
 
-            @if($teacherDurationChanges->isNotEmpty())
+            <?php if($teacherDurationChanges->isNotEmpty()): ?>
                 <div class="teacher-summary-grid">
-                    @foreach($teacherDurationChanges as $teacher)
+                    <?php $__currentLoopData = $teacherDurationChanges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <article class="teacher-mini-card is-highlighted" data-activity-card>
                             <div class="teacher-mini-top">
                                 <div class="list-row-copy">
-                                    <p class="list-row-title">{{ $teacher['name'] }}</p>
-                                    <p class="meta-copy">{{ $teacher['timeslot_duration_label'] }}</p>
+                                    <p class="list-row-title"><?php echo e($teacher['name']); ?></p>
+                                    <p class="meta-copy"><?php echo e($teacher['timeslot_duration_label']); ?></p>
                                 </div>
                                 <span class="status-chip">Geändert</span>
                             </div>
                             <p class="meta-copy">
-                                @if($teacher['duration_changed_label'])
-                                    {{ $teacher['duration_changed_label'] }}
-                                @endif
+                                <?php if($teacher['duration_changed_label']): ?>
+                                    <?php echo e($teacher['duration_changed_label']); ?>
+
+                                <?php endif; ?>
                             </p>
                             <div class="teacher-mini-actions actions-on-hover">
-                                <a class="button button-compact" href="{{ route('admin.teachers.show', $teacher['slug']) }}">
+                                <a class="button button-compact" href="<?php echo e(route('admin.teachers.show', $teacher['slug'])); ?>">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                                         <circle cx="9" cy="7" r="4"></circle>
@@ -111,8 +99,8 @@
                                     </svg>
                                     Lehrer öffnen
                                 </a>
-                                <form method="POST" action="{{ route('admin.teachers.activities.delete', $teacher['slug']) }}">
-                                    @csrf
+                                <form method="POST" action="<?php echo e(route('admin.teachers.activities.delete', $teacher['slug'])); ?>">
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="danger-button button-compact">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M3 6h18"></path>
@@ -126,11 +114,11 @@
                                 </form>
                             </div>
                         </article>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            @else
+            <?php else: ?>
                 <p class="empty-copy">Noch keine Änderungen an Termindauern gemeldet.</p>
-            @endif
+            <?php endif; ?>
         </section>
 
         <section class="panel section-anchor" id="parent-day">
@@ -141,8 +129,8 @@
                 </div>
             </div>
 
-            <form method="POST" action="{{ route('admin.parent-day.update') }}" class="stack">
-                @csrf
+            <form method="POST" action="<?php echo e(route('admin.parent-day.update')); ?>" class="stack">
+                <?php echo csrf_field(); ?>
                 <div class="field field-inline">
                     <label for="parent_day">Datum des Elternsprechtags</label>
                     <div class="field-inline-row">
@@ -150,7 +138,7 @@
                             id="parent_day"
                             type="date"
                             name="parent_day"
-                            value="{{ old('parent_day', $parentDayValue) }}"
+                            value="<?php echo e(old('parent_day', $parentDayValue)); ?>"
                             required
                         />
                         <button type="submit" class="button">
@@ -164,21 +152,22 @@
                 </div>
             </form>
 
-            @if($parentDays->isEmpty())
+            <?php if($parentDays->isEmpty()): ?>
                 <p class="empty-copy">Noch keine Elternsprechtage angelegt.</p>
-            @else
+            <?php else: ?>
                 <div class="list-stack">
-                    @foreach($parentDays as $day)
-                        <article class="list-row is-interactive {{ $activeParentDay && $activeParentDay->id === $day->id ? 'is-highlighted' : '' }}">
+                    <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <article class="list-row is-interactive <?php echo e($activeParentDay && $activeParentDay->id === $day->id ? 'is-highlighted' : ''); ?>">
                             <div class="list-row-copy">
-                                <p class="list-row-title">{{ $day->date->format('d/m/Y') }}</p>
+                                <p class="list-row-title"><?php echo e($day->date->format('d/m/Y')); ?></p>
                                 <p class="meta-copy">
-                                    {{ $activeParentDay && $activeParentDay->id === $day->id ? 'Aktiver Elternsprechtag' : 'Nicht aktiv' }}
+                                    <?php echo e($activeParentDay && $activeParentDay->id === $day->id ? 'Aktiver Elternsprechtag' : 'Nicht aktiv'); ?>
+
                                 </p>
                             </div>
                             <div class="list-row-actions actions-on-hover">
-                                <form method="POST" action="{{ route('admin.parent-days.delete', $day->id) }}">
-                                    @csrf
+                                <form method="POST" action="<?php echo e(route('admin.parent-days.delete', $day->id)); ?>">
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="danger-button">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M3 6h18"></path>
@@ -192,9 +181,9 @@
                                 </form>
                             </div>
                         </article>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            @endif
+            <?php endif; ?>
         </section>
 
         <section class="panel section-anchor" id="teachers">
@@ -214,31 +203,31 @@
                 />
             </div>
 
-            @if($teachers->isNotEmpty())
+            <?php if($teachers->isNotEmpty()): ?>
                 <div class="list-stack">
-                    @foreach($teachers as $teacher)
+                    <?php $__currentLoopData = $teachers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <article
-                            class="list-row is-interactive {{ $teacher['duration_changed'] ? 'is-highlighted' : '' }}"
+                            class="list-row is-interactive <?php echo e($teacher['duration_changed'] ? 'is-highlighted' : ''); ?>"
                             tabindex="0"
                             data-selectable-row
                             data-search-item
-                            data-search-text="{{ \Illuminate\Support\Str::lower($teacher['name'].' '.$teacher['short'].' '.$teacher['display_classes']) }}"
+                            data-search-text="<?php echo e(\Illuminate\Support\Str::lower($teacher['name'].' '.$teacher['short'].' '.$teacher['display_classes'])); ?>"
                         >
                             <div class="list-row-copy">
-                                <p class="list-row-title">{{ $teacher['name'] }}</p>
-                                <p class="meta-copy">{{ $teacher['short'] }} · {{ $teacher['display_classes'] }}</p>
+                                <p class="list-row-title"><?php echo e($teacher['name']); ?></p>
+                                <p class="meta-copy"><?php echo e($teacher['short']); ?> · <?php echo e($teacher['display_classes']); ?></p>
                                 <div class="button-row">
-                                    <span class="badge">{{ $teacher['timeslot_duration_label'] }}</span>
-                                    <span class="badge">{{ $teacher['free_slots'] }} frei</span>
-                                    <span class="badge">{{ $teacher['booked_slots'] }} gebucht</span>
-                                    @if($teacher['duration_changed'])
+                                    <span class="badge"><?php echo e($teacher['timeslot_duration_label']); ?></span>
+                                    <span class="badge"><?php echo e($teacher['free_slots']); ?> frei</span>
+                                    <span class="badge"><?php echo e($teacher['booked_slots']); ?> gebucht</span>
+                                    <?php if($teacher['duration_changed']): ?>
                                         <span class="status-chip">Termindauer geändert</span>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
                             <div class="list-row-actions actions-on-hover">
-                                <a class="ghost-button" href="{{ route('admin.teachers.appointments', $teacher['slug']) }}">
+                                <a class="ghost-button" href="<?php echo e(route('admin.teachers.appointments', $teacher['slug'])); ?>">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <rect x="3" y="4" width="18" height="18" rx="2"></rect>
                                         <path d="M16 2v4"></path>
@@ -247,7 +236,7 @@
                                     </svg>
                                     Termine
                                 </a>
-                                <a class="button" href="{{ route('admin.teachers.show', $teacher['slug']) }}">
+                                <a class="button" href="<?php echo e(route('admin.teachers.show', $teacher['slug'])); ?>">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M12 20h9"></path>
                                         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
@@ -256,11 +245,11 @@
                                 </a>
                             </div>
                         </article>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            @else
+            <?php else: ?>
                 <p class="empty-copy">Noch keine Lehrer angelegt.</p>
-            @endif
+            <?php endif; ?>
         </section>
 
         <section class="panel">
@@ -270,8 +259,8 @@
                 </div>
             </div>
 
-            <form method="POST" action="{{ route('admin.teachers.accounts.store') }}" class="stack wizard" data-wizard="teacher">
-                @csrf
+            <form method="POST" action="<?php echo e(route('admin.teachers.accounts.store')); ?>" class="stack wizard" data-wizard="teacher">
+                <?php echo csrf_field(); ?>
                 <div class="wizard-steps">
                     <div class="wizard-step-indicator is-active" data-step-indicator>1. Zugang</div>
                     <div class="wizard-step-indicator" data-step-indicator>2. Klassen</div>
@@ -285,7 +274,7 @@
                             id="teacher_emails"
                             type="text"
                             name="teacher_emails"
-                            value="{{ old('teacher_emails', '') }}"
+                            value="<?php echo e(old('teacher_emails', '')); ?>"
                             placeholder="Max Mustermann <max.mustermann@schule.at>, Erika Muster <erika.muster@schule.at>"
                         />
                     </div>
@@ -297,17 +286,18 @@
 
                 <div class="stack wizard-step" data-step>
                     <div class="class-grid-compact">
-                        @foreach($classOptions as $className)
+                        <?php $__currentLoopData = $classOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $className): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <label class="class-chip">
                                 <input
                                     type="checkbox"
                                     name="classes[]"
-                                    value="{{ $className }}"
-                                    {{ in_array($className, old('classes', []), true) ? 'checked' : '' }}
+                                    value="<?php echo e($className); ?>"
+                                    <?php echo e(in_array($className, old('classes', []), true) ? 'checked' : ''); ?>
+
                                 />
-                                <span>{{ $className }}</span>
+                                <span><?php echo e($className); ?></span>
                             </label>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
 
                     <div class="field">
@@ -316,7 +306,7 @@
                             id="additional_classes"
                             type="text"
                             name="additional_classes"
-                            value="{{ old('additional_classes', '') }}"
+                            value="<?php echo e(old('additional_classes', '')); ?>"
                             placeholder="z.B. 3AHIT, 4AHIT"
                         />
                     </div>
@@ -337,7 +327,7 @@
                                 name="timeslot_duration"
                                 min="5"
                                 step="5"
-                                value="{{ old('timeslot_duration', '') }}"
+                                value="<?php echo e(old('timeslot_duration', '')); ?>"
                                 placeholder="z.B. 10"
                             />
                         </div>
@@ -347,7 +337,7 @@
                             <input
                                 id="timeslot_parent_day"
                                 type="text"
-                                value="{{ $parentDayLabel }}"
+                                value="<?php echo e($parentDayLabel); ?>"
                                 readonly
                             />
                         </div>
@@ -358,7 +348,7 @@
                                 id="timeslot_start"
                                 type="time"
                                 name="timeslot_start"
-                                value="{{ old('timeslot_start', '') }}"
+                                value="<?php echo e(old('timeslot_start', '')); ?>"
                             />
                         </div>
 
@@ -368,7 +358,7 @@
                                 id="timeslot_end"
                                 type="time"
                                 name="timeslot_end"
-                                value="{{ old('timeslot_end', '') }}"
+                                value="<?php echo e(old('timeslot_end', '')); ?>"
                             />
                         </div>
 
@@ -378,7 +368,7 @@
                                 id="timeslot_room"
                                 type="text"
                                 name="timeslot_room"
-                                value="{{ old('timeslot_room', '') }}"
+                                value="<?php echo e(old('timeslot_room', '')); ?>"
                                 placeholder="z.B. B201"
                             />
                         </div>
@@ -409,8 +399,8 @@
             </div>
 
             <div class="panel-body" data-collapsible-content>
-                <form method="POST" action="{{ route('admin.classes.store') }}" class="stack">
-                    @csrf
+                <form method="POST" action="<?php echo e(route('admin.classes.store')); ?>" class="stack">
+                    <?php echo csrf_field(); ?>
                     <div class="field field-inline">
                         <label for="new_class">Neue Klasse</label>
                         <div class="field-inline-row class-create-row">
@@ -427,31 +417,31 @@
                     </div>
                 </form>
 
-                @if($schoolClasses->isNotEmpty())
+                <?php if($schoolClasses->isNotEmpty()): ?>
                     <div class="class-list compact-grid">
-                        @foreach($schoolClasses as $schoolClass)
+                        <?php $__currentLoopData = $schoolClasses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $schoolClass): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="class-row compact-grid">
                                 <form
                                     method="POST"
-                                    action="{{ route('admin.classes.update', $schoolClass) }}"
+                                    action="<?php echo e(route('admin.classes.update', $schoolClass)); ?>"
                                     class="class-row-form"
                                     data-class-form
                                 >
-                                    @csrf
+                                    <?php echo csrf_field(); ?>
                                     <input
                                         type="text"
                                         name="name"
-                                        value="{{ $schoolClass->name }}"
+                                        value="<?php echo e($schoolClass->name); ?>"
                                         class="class-input compact"
                                         data-class-input
                                     />
                                 </form>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
-                @else
+                <?php else: ?>
                     <p class="empty-copy">Noch keine Klassen angelegt.</p>
-                @endif
+                <?php endif; ?>
             </div>
         </section>
 
@@ -472,8 +462,8 @@
             </div>
 
             <div class="panel-body" data-collapsible-content>
-                <form method="POST" action="{{ route('admin.rooms.store') }}" class="stack">
-                    @csrf
+                <form method="POST" action="<?php echo e(route('admin.rooms.store')); ?>" class="stack">
+                    <?php echo csrf_field(); ?>
                     <div class="field field-inline">
                         <label for="new_room">Neuer Raum</label>
                         <div class="field-inline-row class-create-row">
@@ -490,31 +480,31 @@
                     </div>
                 </form>
 
-                @if($rooms->isNotEmpty())
+                <?php if($rooms->isNotEmpty()): ?>
                     <div class="class-list compact-grid">
-                        @foreach($rooms as $room)
+                        <?php $__currentLoopData = $rooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="class-row compact-grid">
                                 <form
                                     method="POST"
-                                    action="{{ route('admin.rooms.update', $room) }}"
+                                    action="<?php echo e(route('admin.rooms.update', $room)); ?>"
                                     class="class-row-form"
                                     data-room-form
                                 >
-                                    @csrf
+                                    <?php echo csrf_field(); ?>
                                     <input
                                         type="text"
                                         name="name"
-                                        value="{{ $room->name }}"
+                                        value="<?php echo e($room->name); ?>"
                                         class="class-input compact"
                                         data-room-input
                                     />
                                 </form>
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
-                @else
+                <?php else: ?>
                     <p class="empty-copy">Noch keine Räume angelegt.</p>
-                @endif
+                <?php endif; ?>
             </div>
         </section>
 
@@ -535,8 +525,8 @@
             </div>
 
             <div class="panel-body" data-collapsible-content>
-                <form method="POST" action="{{ route('admin.teachers.import') }}" enctype="multipart/form-data" class="stack" data-import>
-                    @csrf
+                <form method="POST" action="<?php echo e(route('admin.teachers.import')); ?>" enctype="multipart/form-data" class="stack" data-import>
+                    <?php echo csrf_field(); ?>
 
                     <div class="field">
                         <label for="teacher_file">Excel-Datei (xlsx)</label>
@@ -549,7 +539,7 @@
                         />
                     </div>
 
-                    @if($canGenerateTimeslots)
+                    <?php if($canGenerateTimeslots): ?>
                         <div class="field field-inline">
                             <label for="create_timeslots">Termine direkt anlegen</label>
                             <div class="field-inline-row">
@@ -569,7 +559,7 @@
                                     name="timeslot_duration"
                                     min="5"
                                     step="5"
-                                    value="{{ old('timeslot_duration', '') }}"
+                                    value="<?php echo e(old('timeslot_duration', '')); ?>"
                                     placeholder="z.B. 10"
                                 />
                             </div>
@@ -579,7 +569,7 @@
                                 <input
                                     id="import_timeslot_parent_day"
                                     type="text"
-                                    value="{{ $parentDayLabel }}"
+                                    value="<?php echo e($parentDayLabel); ?>"
                                     readonly
                                 />
                             </div>
@@ -590,7 +580,7 @@
                                     id="import_timeslot_start"
                                     type="time"
                                     name="timeslot_start"
-                                    value="{{ old('timeslot_start', '') }}"
+                                    value="<?php echo e(old('timeslot_start', '')); ?>"
                                     min="00:00"
                                     max="23:59"
                                     step="60"
@@ -604,7 +594,7 @@
                                     id="import_timeslot_end"
                                     type="time"
                                     name="timeslot_end"
-                                    value="{{ old('timeslot_end', '') }}"
+                                    value="<?php echo e(old('timeslot_end', '')); ?>"
                                     min="00:00"
                                     max="23:59"
                                     step="60"
@@ -618,12 +608,12 @@
                                     id="import_timeslot_room"
                                     type="text"
                                     name="timeslot_room"
-                                    value="{{ old('timeslot_room', '') }}"
+                                    value="<?php echo e(old('timeslot_room', '')); ?>"
                                     placeholder="z.B. B201"
                                 />
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                     <div class="button-row">
                         <button type="submit" class="button">Import starten</button>
@@ -637,8 +627,8 @@
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
             <h3 class="panel-title" style="font-size: 1.3rem;">Mehrere Klassen hinzufügen</h3>
-            <form method="POST" action="{{ route('admin.classes.store') }}" class="stack">
-                @csrf
+            <form method="POST" action="<?php echo e(route('admin.classes.store')); ?>" class="stack">
+                <?php echo csrf_field(); ?>
                 <div class="field">
                     <label for="bulk_classes">Klassen (kommagetrennt)</label>
                     <textarea id="bulk_classes" name="name" rows="3" placeholder="Klasse 1A, Klasse 1B, Klasse 2A"></textarea>
@@ -655,8 +645,8 @@
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-content">
             <h3 class="panel-title" style="font-size: 1.3rem;">Mehrere Räume hinzufügen</h3>
-            <form method="POST" action="{{ route('admin.rooms.store') }}" class="stack">
-                @csrf
+            <form method="POST" action="<?php echo e(route('admin.rooms.store')); ?>" class="stack">
+                <?php echo csrf_field(); ?>
                 <div class="field">
                     <label for="bulk_rooms">Räume (kommagetrennt)</label>
                     <textarea id="bulk_rooms" name="name" rows="3" placeholder="Raum 101, Raum 102, Raum 103"></textarea>
@@ -864,4 +854,20 @@
 
         })();
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.portal', [
+    'pageTitle' => 'Admin-Übersicht',
+    'roleTitle' => 'Admin-Ansicht',
+    'theme' => 'admin',
+    'homeRoute' => 'admin.dashboard',
+    'navLinks' => [
+        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
+        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity', 'badge' => $teacherDurationChangeCount ?: null],
+        ['label' => 'Datumfestlegung', 'href' => route('admin.dashboard').'#parent-day'],
+        ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
+        ['label' => 'Schulklassen', 'href' => route('admin.dashboard').'#classes'],
+        ['label' => 'Räume', 'href' => route('admin.dashboard').'#rooms'],
+        ['label' => 'Excel-Import', 'href' => route('admin.dashboard').'#excel-import'],
+    ],
+], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /var/www/resources/views/admin/dashboard.blade.php ENDPATH**/ ?>

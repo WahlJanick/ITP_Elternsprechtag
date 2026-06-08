@@ -81,8 +81,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/teachers/activities/delete-all', [PortalController::class, 'adminTeacherActivitiesDeleteAll'])->name('admin.teachers.activities.delete-all');
     Route::get('/admin/timeslots/create', [PortalController::class, 'adminTimeslotCreate'])->name('admin.timeslots.create');
     Route::post('/admin/timeslots', [PortalController::class, 'adminTimeslotStore'])->name('admin.timeslots.store');
+    Route::post('/admin/timeslots/generate', [PortalController::class, 'adminTimeslotsGenerate'])->name('admin.timeslots.generate');
     Route::get('/admin/timeslots/{timeslot}/edit', [PortalController::class, 'adminTimeslotEdit'])->name('admin.timeslots.edit');
-    Route::post('/admin/timeslots/{timeslot}', [PortalController::class, 'adminTimeslotUpdate'])->name('admin.timeslots.update');
+    Route::match(['post', 'put'], '/admin/timeslots/{timeslot}', [PortalController::class, 'adminTimeslotUpdate'])->name('admin.timeslots.update');
     Route::delete('/admin/timeslots/{timeslot}', [PortalController::class, 'adminTimeslotDestroy'])->name('admin.timeslots.destroy');
     Route::post('/admin/timeslots/{timeslot}/release', [PortalController::class, 'adminReleaseSlot'])->name('admin.timeslots.release');
 

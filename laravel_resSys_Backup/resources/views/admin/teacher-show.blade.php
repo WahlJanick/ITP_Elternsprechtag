@@ -4,11 +4,9 @@
     'theme' => 'admin',
     'homeRoute' => 'admin.dashboard',
     'navLinks' => [
-        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
-        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity'],
-        ['label' => 'Datumfestlegung', 'href' => route('admin.dashboard').'#parent-day'],
+        ['label' => 'Übersicht', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
         ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Terminübersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
+        ['label' => 'Termine', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
     ],
 ])
 
@@ -74,33 +72,27 @@
             </form>
         </section>
 
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <span class="eyebrow">Elternsprechtag</span>
-                    <h2 class="panel-title">Termindauer einstellen</h2>
-                    <p class="panel-subtitle">Aktiver Elternsprechtag: {{ $parentDayLabel }}</p>
-                </div>
-            </div>
-
-            <form method="POST" action="{{ route('admin.teachers.duration.update', $teacher['slug']) }}" class="stack">
+        <section class="panel compact-settings-panel">
+            <form method="POST" action="{{ route('admin.teachers.duration.update', $teacher['slug']) }}" class="compact-settings-form">
                 @csrf
-                <div class="field field-inline">
-                    <label for="timeslot_duration">Dauer in Minuten</label>
-                    <div class="field-inline-row">
-                        <input
-                            id="timeslot_duration"
-                            type="number"
-                            name="timeslot_duration"
-                            min="5"
-                            step="5"
-                            value="{{ old('timeslot_duration', $teacher['timeslot_duration'] ?? 10) }}"
-                            required
-                        />
-                        <button type="submit" class="button">Speichern</button>
-                    </div>
-                </div>
-                <p class="hint">Diese Termindauer gilt nur fuer den aktuell gewaehlten Elternsprechtag.</p>
+                <label for="timeslot_duration"><strong>Termindauer</strong></label>
+                <input
+                    id="timeslot_duration"
+                    type="number"
+                    name="timeslot_duration"
+                    min="5"
+                    step="5"
+                    value="{{ old('timeslot_duration', $teacher['timeslot_duration'] ?? 10) }}"
+                    aria-label="Termindauer in Minuten"
+                    required
+                    @if(! $canEditParentDay) disabled @endif
+                />
+                <span class="hint">Minuten · {{ $parentDayLabel }}</span>
+                @if($canEditParentDay)
+                    <button type="submit" class="button button-compact">Speichern</button>
+                @else
+                    <span class="badge">Nur Ansicht</span>
+                @endif
             </form>
         </section>
 

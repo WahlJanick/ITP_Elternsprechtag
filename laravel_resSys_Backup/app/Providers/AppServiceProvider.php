@@ -39,7 +39,17 @@ class AppServiceProvider extends ServiceProvider
 
             ParentDay::ensureDefaultFromLegacy();
 
-            $parentDays = ParentDay::query()->orderBy('date')->get();
+            $parentDaysQuery = ParentDay::query()->orderBy('date');
+
+            if (! auth()->user()?->isAdminUser()) {
+                $parentDaysQuery->whereDate('date', '>=', now()->toDateString());
+            }
+
+            if (auth()->user()?->isStudentUser()) {
+                $parentDaysQuery->whereHas('timeslots');
+            }
+
+            $parentDays = $parentDaysQuery->get();
             $selectedId = session('parent_day_id');
 
             if ($selectedId && ! $parentDays->contains('id', $selectedId)) {

@@ -1,34 +1,21 @@
-@extends('layouts.portal', [
-    'pageTitle' => 'Admin Terminübersicht Lehrer',
-    'roleTitle' => 'Admin-Ansicht',
-    'theme' => 'admin',
-    'homeRoute' => 'admin.dashboard',
-    'navLinks' => [
-        ['label' => 'Übersicht', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
-        ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Bearbeiten', 'route' => 'admin.teachers.show', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.show'],
-        ['label' => 'Termine', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
-    ],
-])
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="stack">
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <span class="eyebrow">Lehrertermine</span>
-                    <h2 class="panel-title">{{ $teacher['name'] }} ({{ $teacher['short'] }})</h2>
+                    <h2 class="panel-title"><?php echo e($teacher['name']); ?> (<?php echo e($teacher['short']); ?>)</h2>
                     <div class="button-row" style="margin-top: 12px;">
-                        <span class="badge">{{ $teacher['display_classes'] }}</span>
-                        <span class="badge">{{ $teacher['timeslot_duration_label'] }}</span>
-                        @if($teacher['duration_changed'])
+                        <span class="badge"><?php echo e($teacher['display_classes']); ?></span>
+                        <span class="badge"><?php echo e($teacher['timeslot_duration_label']); ?></span>
+                        <?php if($teacher['duration_changed']): ?>
                             <span class="status-chip">Termindauer geändert</span>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
 
                 <div class="button-row">
-                    <a class="ghost-button" href="{{ route('admin.teachers.show', $teacher['slug']) }}">
+                    <a class="ghost-button" href="<?php echo e(route('admin.teachers.show', $teacher['slug'])); ?>">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
@@ -37,8 +24,8 @@
                         </svg>
                         Lehrer bearbeiten
                     </a>
-                    @if($canEditParentDay)
-                        <a class="button" href="{{ route('admin.timeslots.create', ['teacher' => $teacher['reference_id']]) }}">
+                    <?php if($canEditParentDay): ?>
+                        <a class="button" href="<?php echo e(route('admin.timeslots.create', ['teacher' => $teacher['reference_id']])); ?>">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect x="3" y="4" width="18" height="18" rx="2"></rect>
                                 <path d="M16 2v4"></path>
@@ -49,48 +36,41 @@
                             </svg>
                             Termine generieren
                         </a>
-                    @else
+                    <?php else: ?>
                         <span class="badge">Nur Ansicht</span>
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
 
-            @if($appointments->isEmpty())
+            <?php if($appointments->isEmpty()): ?>
                 <p class="empty-copy">Für diesen Lehrer wurden noch keine Termine angelegt.</p>
-            @else
-                <div class="appointment-filter" data-appointment-filters>
-                    <button type="button" class="filter-button is-active" data-appointment-filter="all">Alle</button>
-                    <button type="button" class="filter-button" data-appointment-filter="free">Frei</button>
-                    <button type="button" class="filter-button" data-appointment-filter="booked">Gebucht</button>
-                </div>
-
+            <?php else: ?>
                 <div class="appointments-list">
-                    @foreach($appointments as $appointment)
-                        <article class="appointment-row" data-appointment-status="{{ $appointment['is_reserved'] ? 'booked' : 'free' }}">
-                            <div class="appointment-time">{{ $appointment['time_label'] }}</div>
+                    <?php $__currentLoopData = $appointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $appointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <article class="appointment-row">
+                            <div class="appointment-time"><?php echo e($appointment['time_label']); ?></div>
 
                             <div class="appointment-main">
-                                @if($appointment['is_reserved'])
-                                    <p class="appointment-title">{{ $appointment['student_name'] }}</p>
-                                    <p class="appointment-meta">{{ $appointment['class_name'] }}</p>
-                                @endif
+                                <p class="appointment-title"><?php echo e($appointment['student_name']); ?></p>
+                                <p class="appointment-meta"><?php echo e($appointment['date_label']); ?> · <?php echo e($appointment['class_name']); ?> · Raum <?php echo e($appointment['room']); ?></p>
                             </div>
 
                             <div class="appointment-actions">
-                                <span class="status-chip {{ $appointment['is_reserved'] ? 'is-booked' : 'is-free' }}">
-                                    {{ $appointment['is_reserved'] ? 'Gebucht' : 'Frei' }}
+                                <span class="status-chip <?php echo e($appointment['is_reserved'] ? 'is-booked' : 'is-free'); ?>">
+                                    <?php echo e($appointment['is_reserved'] ? 'Gebucht' : 'Frei'); ?>
+
                                 </span>
-                                @if($canEditParentDay)
-                                    <a class="ghost-button" href="{{ route('admin.timeslots.edit', $appointment['id']) }}">
+                                <?php if($canEditParentDay): ?>
+                                    <a class="ghost-button" href="<?php echo e(route('admin.timeslots.edit', $appointment['id'])); ?>">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <path d="M12 20h9"></path>
                                             <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
                                         </svg>
                                         Bearbeiten
                                     </a>
-                                    @if($appointment['is_reserved'])
-                                        <form method="POST" action="{{ route('admin.timeslots.release', $appointment['id']) }}">
-                                            @csrf
+                                    <?php if($appointment['is_reserved']): ?>
+                                        <form method="POST" action="<?php echo e(route('admin.timeslots.release', $appointment['id'])); ?>">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="danger-button">
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                     <circle cx="12" cy="12" r="10"></circle>
@@ -100,10 +80,10 @@
                                                 Stornieren
                                             </button>
                                         </form>
-                                    @endif
-                                    <form method="POST" action="{{ route('admin.timeslots.destroy', $appointment['id']) }}">
-                                        @csrf
-                                        @method('DELETE')
+                                    <?php endif; ?>
+                                    <form method="POST" action="<?php echo e(route('admin.timeslots.destroy', $appointment['id'])); ?>">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
                                         <button type="submit" class="danger-button">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                 <path d="M3 6h18"></path>
@@ -115,12 +95,26 @@
                                             Löschen
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </article>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            @endif
+            <?php endif; ?>
         </section>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.portal', [
+    'pageTitle' => 'Admin Terminübersicht Lehrer',
+    'roleTitle' => 'Admin-Ansicht',
+    'theme' => 'admin',
+    'homeRoute' => 'admin.dashboard',
+    'navLinks' => [
+        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
+        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity'],
+        ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
+        ['label' => 'Bearbeiten', 'route' => 'admin.teachers.show', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.show'],
+        ['label' => 'Terminübersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
+    ],
+], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /var/www/resources/views/admin/teacher-appointments.blade.php ENDPATH**/ ?>

@@ -47,10 +47,6 @@
                     <p class="hero-copy">
                         {{ $summary['teacher_names'] ?: 'Noch keine Termine gebucht.' }}
                     </p>
-                    <div class="button-row" style="margin-top: 16px;">
-                        <span class="badge">Max. 1 Termin pro Lehrer</span>
-                        <span class="badge">Azure-Login aktiv</span>
-                    </div>
                 </div>
             </div>
         </section>

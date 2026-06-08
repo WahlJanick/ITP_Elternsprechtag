@@ -1,19 +1,19 @@
-@php
+<?php
     $displayName = auth()->user()?->name ?? 'Portal-Nutzer';
     $initials = collect(preg_split('/\s+/', trim($displayName)))
         ->filter()
         ->take(2)
         ->map(fn ($part) => strtoupper(substr($part, 0, 1)))
         ->implode('');
-@endphp
+?>
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="<?php echo e(str_replace('_', '-', app()->getLocale())); ?>">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ $pageTitle ?? 'Reservierungssystem' }}</title>
-        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
+        <title><?php echo e($pageTitle ?? 'Reservierungssystem'); ?></title>
+        <link rel="icon" type="image/png" href="<?php echo e(asset('favicon.png')); ?>">
+        <link rel="shortcut icon" href="<?php echo e(asset('favicon.png')); ?>">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
         <style>
@@ -610,20 +610,11 @@
             .button svg,
             .print-button svg,
             .danger-button svg,
-            .ghost-button svg,
-            .filter-button svg,
-            .close-button svg,
-            .header-link svg {
+            .ghost-button svg {
                 width: 16px;
                 height: 16px;
                 margin-right: 6px;
                 flex-shrink: 0;
-            }
-
-            .close-button svg {
-                width: 22px;
-                height: 22px;
-                margin-right: 0;
             }
 
             .button {
@@ -673,67 +664,6 @@
 
             .list-stack {
                 gap: 14px;
-            }
-
-            .appointment-filter {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-                margin-bottom: 12px;
-            }
-
-            .filter-button {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 34px;
-                padding: 0 12px;
-                border: 2px solid var(--panel-stroke);
-                border-radius: 999px;
-                background: rgba(255, 255, 255, 0.72);
-                color: var(--copy);
-                font-weight: 700;
-            }
-
-            .filter-button.is-active {
-                background: var(--accent);
-                color: var(--accent-copy);
-            }
-
-            [data-appointment-status][hidden] {
-                display: none;
-            }
-
-            .compact-settings-panel {
-                padding: 12px 16px;
-            }
-
-            .compact-settings-form {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-
-            .compact-settings-form input {
-                width: 76px;
-                min-height: 34px;
-                padding: 0 8px;
-                border: 2px solid var(--panel-stroke);
-                border-radius: 8px;
-                background: white;
-                color: var(--copy);
-                font: inherit;
-                font-weight: 700;
-            }
-
-            .teacher-navigation {
-                padding: 12px;
-            }
-
-            .teacher-navigation .tile {
-                min-height: 90px;
-                padding: 10px;
             }
 
             .list-row {
@@ -1240,32 +1170,33 @@
             }
         </style>
     </head>
-    <body class="theme-{{ $theme ?? 'student' }}">
+    <body class="theme-<?php echo e($theme ?? 'student'); ?>">
         <header class="portal-header">
             <div class="header-inner">
-                <a class="logo-link" href="{{ $homeRoute ? route($homeRoute) : route('login') }}">
-                    <img src="{{ asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png') }}" alt="HTL Waidhofen" style="height: 60px; background: white; padding: 6px; border-radius: 4px;">
+                <a class="logo-link" href="<?php echo e($homeRoute ? route($homeRoute) : route('login')); ?>">
+                    <img src="<?php echo e(asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png')); ?>" alt="HTL Waidhofen" style="height: 60px; background: white; padding: 6px; border-radius: 4px;">
                 </a>
 
                 <nav class="header-actions" aria-label="Seitennavigation">
-                    @if(isset($parentDays) && $parentDays->isNotEmpty())
+                    <?php if(isset($parentDays) && $parentDays->isNotEmpty()): ?>
                         <form
                             method="POST"
-                            action="{{ route('parent-days.select') }}"
-                            class="parent-day-select {{ session('parent_day_switched') ? 'is-done' : '' }}"
+                            action="<?php echo e(route('parent-days.select')); ?>"
+                            class="parent-day-select <?php echo e(session('parent_day_switched') ? 'is-done' : ''); ?>"
                             data-parent-day-form
                         >
-                            @csrf
+                            <?php echo csrf_field(); ?>
                             <span class="parent-day-label">Tag</span>
                             <select name="parent_day_id" data-parent-day-select onchange="this.form.submit()">
-                                @foreach($parentDays as $day)
+                                <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option
-                                        value="{{ $day->id }}"
-                                        @if($activeParentDay && $activeParentDay->id === $day->id) selected @endif
+                                        value="<?php echo e($day->id); ?>"
+                                        <?php if($activeParentDay && $activeParentDay->id === $day->id): ?> selected <?php endif; ?>
                                     >
-                                        {{ $day->date->format('d/m/Y') }}
+                                        <?php echo e($day->date->format('d/m/Y')); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                             <div class="parent-day-status" aria-live="polite">
                                 <span class="parent-day-spinner" aria-hidden="true"></span>
@@ -1274,27 +1205,28 @@
                                 <span class="parent-day-status-text-done">Fertig geladen</span>
                             </div>
                         </form>
-                    @endif
-                    @foreach(($navLinks ?? []) as $link)
-                        @php
+                    <?php endif; ?>
+                    <?php $__currentLoopData = ($navLinks ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $href = $link['href'] ?? route($link['route'], $link['params'] ?? []);
                             $activePattern = $link['active'] ?? ($link['route'] ?? null);
                             $isActive = isset($link['active_exact'])
                                 ? request()->routeIs($link['active_exact'])
                                 : ($activePattern ? request()->routeIs($activePattern) : false);
-                        @endphp
+                        ?>
                         <a
-                            href="{{ $href }}"
-                            class="header-link {{ $isActive ? 'is-active' : '' }}"
+                            href="<?php echo e($href); ?>"
+                            class="header-link <?php echo e($isActive ? 'is-active' : ''); ?>"
                         >
-                            {{ $link['label'] }}
-                            @if(! empty($link['badge']))
-                                <span class="header-link-badge">{{ $link['badge'] }}</span>
-                            @endif
-                        </a>
-                    @endforeach
+                            <?php echo e($link['label']); ?>
 
-                    <a class="logout-link" href="{{ route('logout') }}" aria-label="Abmelden">
+                            <?php if(! empty($link['badge'])): ?>
+                                <span class="header-link-badge"><?php echo e($link['badge']); ?></span>
+                            <?php endif; ?>
+                        </a>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                    <a class="logout-link" href="<?php echo e(route('logout')); ?>" aria-label="Abmelden">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M14 16l4-4-4-4"></path>
                             <path d="M8 12h10"></path>
@@ -1303,81 +1235,48 @@
                     </a>
                 </nav>
 
-                <div class="user-badge">{{ $initials ?: 'JW' }}</div>
+                <div class="user-badge"><?php echo e($initials ?: 'JW'); ?></div>
             </div>
         </header>
 
         <main class="page-content">
-            @if(session('success') || session('error'))
+            <?php if(session('success') || session('error')): ?>
                 <div class="flash-stack">
-                    @if(session('success'))
-                        <div class="flash flash-success">{{ session('success') }}</div>
-                    @endif
+                    <?php if(session('success')): ?>
+                        <div class="flash flash-success"><?php echo e(session('success')); ?></div>
+                    <?php endif; ?>
 
-                    @if(session('error'))
-                        <div class="flash flash-error">{{ session('error') }}</div>
-                    @endif
+                    <?php if(session('error')): ?>
+                        <div class="flash flash-error"><?php echo e(session('error')); ?></div>
+                    <?php endif; ?>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </main>
 
         <script>
             (() => {
                 const parentDayForm = document.querySelector('[data-parent-day-form]');
 
-                if (parentDayForm) {
-                    const select = parentDayForm.querySelector('[data-parent-day-select]');
-
-                    select?.addEventListener('change', () => {
-                        parentDayForm.classList.remove('is-done');
-                        parentDayForm.classList.add('is-loading');
-                    });
-
-                    if (parentDayForm.classList.contains('is-done')) {
-                        window.setTimeout(() => {
-                            parentDayForm.classList.remove('is-done');
-                        }, 1800);
-                    }
+                if (!parentDayForm) {
+                    return;
                 }
 
-                document.querySelectorAll('[data-appointment-filters]').forEach((filterGroup) => {
-                    const panel = filterGroup.closest('.panel');
-                    const appointments = panel?.querySelectorAll('[data-appointment-status]') ?? [];
+                const select = parentDayForm.querySelector('[data-parent-day-select]');
 
-                    filterGroup.querySelectorAll('[data-appointment-filter]').forEach((button) => {
-                        button.addEventListener('click', () => {
-                            const filter = button.dataset.appointmentFilter;
-
-                            filterGroup.querySelectorAll('[data-appointment-filter]').forEach((item) => {
-                                item.classList.toggle('is-active', item === button);
-                            });
-
-                            appointments.forEach((appointment) => {
-                                appointment.hidden = filter !== 'all'
-                                    && appointment.dataset.appointmentStatus !== filter;
-                            });
-                        });
-                    });
+                select?.addEventListener('change', () => {
+                    parentDayForm.classList.remove('is-done');
+                    parentDayForm.classList.add('is-loading');
                 });
 
-                const defaultIcon = `
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14"></path>
-                        <path d="M13 6l6 6-6 6"></path>
-                    </svg>
-                `;
-
-                document.querySelectorAll(
-                    'button, a.button, a.ghost-button, a.danger-button, a.print-button, a.header-link'
-                ).forEach((control) => {
-                    if (!control.querySelector('svg')) {
-                        control.insertAdjacentHTML('afterbegin', defaultIcon);
-                    }
-                });
+                if (parentDayForm.classList.contains('is-done')) {
+                    window.setTimeout(() => {
+                        parentDayForm.classList.remove('is-done');
+                    }, 1800);
+                }
             })();
         </script>
     </body>
 </html>
+<?php /**PATH /var/www/resources/views/layouts/portal.blade.php ENDPATH**/ ?>

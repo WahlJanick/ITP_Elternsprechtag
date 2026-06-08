@@ -11,32 +11,22 @@
 @section('content')
     <div class="stack">
         @if($teacher)
-            <section class="panel">
-                <div class="panel-header">
-                    <div>
-                        <span class="eyebrow">Einstellungen</span>
-                        <h2 class="panel-title">Termindauer</h2>
-                    </div>
-                </div>
-
-                <form method="POST" action="{{ route('teacher.timeslot-duration.update') }}" class="stack">
+            <section class="panel compact-settings-panel">
+                <form method="POST" action="{{ route('teacher.timeslot-duration.update') }}" class="compact-settings-form">
                     @csrf
-                    <div class="field field-inline">
-                        <label for="timeslot_duration">Dauer in Minuten</label>
-                        <div class="field-inline-row">
-                            <input
-                                id="timeslot_duration"
-                                type="number"
-                                name="timeslot_duration"
-                                min="5"
-                                step="5"
-                                value="{{ old('timeslot_duration', $currentDuration ?? $teacher->timeslot_duration ?? 10) }}"
-                                required
-                            />
-                            <button type="submit" class="button">Speichern</button>
-                        </div>
-                    </div>
-                    <p class="hint">Wenn du die Termindauer änderst, wird die Änderung für die Administration markiert.</p>
+                    <label for="timeslot_duration"><strong>Termindauer</strong></label>
+                    <input
+                        id="timeslot_duration"
+                        type="number"
+                        name="timeslot_duration"
+                        min="5"
+                        step="5"
+                        value="{{ old('timeslot_duration', $currentDuration ?? $teacher->timeslot_duration ?? 10) }}"
+                        aria-label="Termindauer in Minuten"
+                        required
+                    />
+                    <span class="hint">Minuten</span>
+                    <button type="submit" class="button button-compact">Speichern</button>
                 </form>
             </section>
         @endif
@@ -47,7 +37,7 @@
                     <span class="eyebrow">Lehreransicht</span>
                     <h2 class="panel-title">Gebuchte Termine</h2>
                     <p class="panel-subtitle">
-                        Lehrer sehen hier alle für sie angelegten Termine inklusive Schüler, Klasse, Raum und Zeit.
+                        Uhrzeit und Buchungsstatus auf einen Blick.
                     </p>
                     @if($teacher)
                         <div class="button-row" style="margin-top: 12px;">
@@ -70,14 +60,22 @@
             @elseif($appointments->isEmpty())
                 <p class="empty-copy">Für diesen Lehrer wurden noch keine Termine angelegt.</p>
             @else
-                <div class="list-stack">
-                    @foreach($appointments as $appointment)
-                        <article class="list-row">
-                            <div class="list-row-copy">
-                                <p class="list-row-title">{{ $appointment['student_name'] }} / {{ $appointment['class_name'] }} / {{ $appointment['room'] }} / {{ $appointment['time_label'] }}</p>
-                                <p class="meta-copy">{{ $appointment['date_label'] }}</p>
-                            </div>
+                <div class="appointment-filter" data-appointment-filters>
+                    <button type="button" class="filter-button is-active" data-appointment-filter="all">Alle</button>
+                    <button type="button" class="filter-button" data-appointment-filter="free">Frei</button>
+                    <button type="button" class="filter-button" data-appointment-filter="booked">Gebucht</button>
+                </div>
 
+                <div class="appointments-list">
+                    @foreach($appointments as $appointment)
+                        <article class="appointment-row" data-appointment-status="{{ $appointment['is_reserved'] ? 'booked' : 'free' }}">
+                            <div class="appointment-time">{{ $appointment['time_label'] }}</div>
+                            <div class="appointment-main">
+                                @if($appointment['is_reserved'])
+                                    <p class="appointment-title">{{ $appointment['student_name'] }}</p>
+                                    <p class="appointment-meta">{{ $appointment['class_name'] }}</p>
+                                @endif
+                            </div>
                             <span class="status-chip {{ $appointment['is_reserved'] ? 'is-booked' : 'is-free' }}">
                                 {{ $appointment['is_reserved'] ? 'Gebucht' : 'Frei' }}
                             </span>

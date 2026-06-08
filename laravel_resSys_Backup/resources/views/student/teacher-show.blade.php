@@ -16,12 +16,15 @@
                 <div>
                     <span class="eyebrow">Lehrer-Detail</span>
                     <h2 class="panel-title">{{ $teacher['name'] }} ({{ $teacher['short'] }})</h2>
-                    <p class="panel-subtitle">
-                        Verfügbare Termine von 17:00 - 19:00 Uhr. Ein Schüler kann maximal einen Termin pro Lehrer buchen.
-                    </p>
+                    <p class="panel-subtitle">{{ $bookingNotice }}</p>
                 </div>
 
-                <a class="close-button" href="{{ route('student.teachers.index') }}" aria-label="Zurück">&times;</a>
+                <a class="close-button" href="{{ route('student.teachers.index') }}" aria-label="Zurück">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 12H5"></path>
+                        <path d="M12 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
             </div>
 
             <div class="button-row" style="margin-bottom: 16px;">
@@ -47,11 +50,7 @@
                     </div>
 
                     <div class="inline-actions" style="margin-top: 24px; justify-content: space-between;">
-                        <span class="hint">Wichtig: Max. 1 Termin je Lehrer und Schüler.</span>
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <span class="status-chip {{ $alreadyBooked ? 'is-booked' : 'is-free' }}">
-                                {{ $alreadyBooked ? 'Bereits ein Termin vorhanden' : 'Direkt buchbar' }}
-                            </span>
                             @if(!$alreadyBooked)
                                 <button type="submit" class="button" id="book-button" disabled>Buchen</button>
                             @endif
@@ -61,23 +60,18 @@
             @endif
         </section>
 
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <span class="eyebrow">Navigation</span>
-                    <h2 class="panel-title">Vorherige und nächste Lehrer</h2>
+        @if($teachers->isNotEmpty())
+            <section class="panel teacher-navigation">
+                <div class="teacher-grid">
+                    @foreach($teachers as $listTeacher)
+                        <a class="tile" href="{{ route('student.teachers.show', $listTeacher['slug']) }}">
+                            <span class="tile-code">{{ $listTeacher['short'] }}</span>
+                            <span class="tile-title">{{ $listTeacher['name'] }}</span>
+                        </a>
+                    @endforeach
                 </div>
-            </div>
-
-            <div class="teacher-grid">
-                @foreach($teachers as $listTeacher)
-                    <a class="tile" href="{{ route('student.teachers.show', $listTeacher['slug']) }}">
-                        <span class="tile-code">{{ $listTeacher['short'] }}</span>
-                        <span class="tile-title">{{ $listTeacher['name'] }}</span>
-                    </a>
-                @endforeach
-            </div>
-        </section>
+            </section>
+        @endif
     </div>
 
     @if(!$alreadyBooked)

@@ -22,8 +22,25 @@ return new class extends Migration
             return;
         }
 
+        $hasDayColumn = Schema::hasColumn('timeslots', 'day');
+        $hasStartsAtColumn = Schema::hasColumn('timeslots', 'starts_at');
+
+        if (! $hasDayColumn && ! $hasStartsAtColumn) {
+            return;
+        }
+
+        $selectColumns = ['id'];
+
+        if ($hasDayColumn) {
+            $selectColumns[] = 'day';
+        }
+
+        if ($hasStartsAtColumn) {
+            $selectColumns[] = 'starts_at';
+        }
+
         $timeslots = DB::table('timeslots')
-            ->select(['id', 'day', 'starts_at'])
+            ->select($selectColumns)
             ->get();
 
         if ($timeslots->isEmpty()) {
@@ -35,9 +52,9 @@ return new class extends Migration
         foreach ($timeslots as $timeslot) {
             $dateValue = null;
 
-            if (! empty($timeslot->day)) {
+            if ($hasDayColumn && ! empty($timeslot->day)) {
                 $dateValue = Carbon::parse($timeslot->day)->toDateString();
-            } elseif (! empty($timeslot->starts_at)) {
+            } elseif ($hasStartsAtColumn && ! empty($timeslot->starts_at)) {
                 $dateValue = Carbon::parse($timeslot->starts_at)->toDateString();
             }
 
@@ -61,12 +78,17 @@ return new class extends Migration
             }
 
             if (isset($dateMap[$dateValue])) {
+                $updatePayload = [
+                    'parent_day_id' => $dateMap[$dateValue],
+                ];
+
+                if ($hasDayColumn) {
+                    $updatePayload['day'] = $dateValue;
+                }
+
                 DB::table('timeslots')
                     ->where('id', $timeslot->id)
-                    ->update([
-                        'parent_day_id' => $dateMap[$dateValue],
-                        'day' => $dateValue,
-                    ]);
+                    ->update($updatePayload);
             }
         }
     }

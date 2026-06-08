@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Entwickler-Login - Elternsprechtag</title>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
+    <link rel="icon" type="image/png" href="<?php echo e(asset('favicon.png')); ?>">
+    <link rel="shortcut icon" href="<?php echo e(asset('favicon.png')); ?>">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
     <style>
@@ -323,8 +323,8 @@
 <body>
     <header class="portal-header">
         <div class="header-inner">
-            <a class="logo-link" href="{{ route('login') }}">
-                <img src="{{ asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png') }}" alt="HTL Waidhofen" class="logo-image">
+            <a class="logo-link" href="<?php echo e(route('login')); ?>">
+                <img src="<?php echo e(asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png')); ?>" alt="HTL Waidhofen" class="logo-image">
             </a>
 
             <div class="header-copy">
@@ -354,8 +354,8 @@
                     <input type="text" id="student-class" placeholder="Klasse" value="3AHIT">
                 </div>
 
-                <form method="POST" action="{{ route('dev.login.student') }}" class="actions">
-                    @csrf
+                <form method="POST" action="<?php echo e(route('dev.login.student')); ?>" class="actions">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="firstname" id="input-firstname">
                     <input type="hidden" name="lastname" id="input-lastname">
                     <input type="hidden" name="class" id="input-class">
@@ -373,14 +373,14 @@
                 <div class="field-stack">
                     <select id="teacher-select">
                         <option value="">Lehrer wählen...</option>
-                        @foreach(\App\Models\Teacher::all() as $teacher)
-                            <option value="{{ $teacher->teacher_id }}">{{ $teacher->full_name }} ({{ $teacher->kuerzel }})</option>
-                        @endforeach
+                        <?php $__currentLoopData = \App\Models\Teacher::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($teacher->teacher_id); ?>"><?php echo e($teacher->full_name); ?> (<?php echo e($teacher->kuerzel); ?>)</option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
-                <form method="POST" action="{{ route('dev.login.teacher') }}" class="actions">
-                    @csrf
+                <form method="POST" action="<?php echo e(route('dev.login.teacher')); ?>" class="actions">
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" name="teacher_id" id="input-teacher-id">
                     <button type="submit">Als Lehrer einloggen</button>
                 </form>
@@ -393,12 +393,12 @@
                     <p class="card-copy">Öffnet direkt die Verwaltungsansicht für Dashboard, Lehrer und Termine.</p>
                 </div>
 
-                <a href="{{ route('dev.login.admin') }}" class="admin-link">Als Admin einloggen</a>
+                <a href="<?php echo e(route('dev.login.admin')); ?>" class="admin-link">Als Admin einloggen</a>
             </article>
         </section>
 
         <div class="footer-row">
-            <a href="{{ route('login') }}" class="back-link">Zurück zur normalen Anmeldung</a>
+            <a href="<?php echo e(route('login')); ?>" class="back-link">Zurück zur normalen Anmeldung</a>
         </div>
     </div>
 
@@ -426,3 +426,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH /var/www/resources/views/dev-login.blade.php ENDPATH**/ ?>
