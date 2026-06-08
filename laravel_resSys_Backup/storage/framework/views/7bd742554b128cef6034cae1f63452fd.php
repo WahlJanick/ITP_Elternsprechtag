@@ -226,7 +226,7 @@
             <?php endif; ?>
         </section>
 
-        <section class="panel section-anchor" id="teachers" data-admin-menu="teachers" hidden>
+        <section class="panel section-anchor admin-teachers-panel" id="teachers" data-admin-menu="teachers" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehrer</h2>
@@ -247,42 +247,104 @@
                 <div class="list-stack">
                     <?php $__currentLoopData = $teachers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <article
-                            class="list-row is-interactive <?php echo e($teacher['duration_changed'] ? 'is-highlighted' : ''); ?>"
+                            class="list-row admin-teacher-row is-interactive <?php echo e($teacher['duration_changed'] ? 'is-highlighted' : ''); ?>"
                             tabindex="0"
                             data-selectable-row
                             data-search-item
                             data-search-text="<?php echo e(\Illuminate\Support\Str::lower($teacher['name'].' '.$teacher['short'].' '.$teacher['display_classes'])); ?>"
                         >
-                            <div class="list-row-copy">
+                            <div class="admin-teacher-head">
                                 <p class="list-row-title"><?php echo e($teacher['name']); ?></p>
-                                <p class="meta-copy"><?php echo e($teacher['short']); ?> · <?php echo e($teacher['display_classes']); ?></p>
-                                <div class="button-row">
-                                    <span class="badge"><?php echo e($teacher['timeslot_duration_label']); ?></span>
-                                    <span class="badge"><?php echo e($teacher['free_slots']); ?> frei</span>
-                                    <span class="badge"><?php echo e($teacher['booked_slots']); ?> gebucht</span>
-                                    <?php if($teacher['duration_changed']): ?>
-                                        <span class="status-chip">Termindauer geändert</span>
+                                <div class="list-row-actions actions-on-hover">
+                                    <?php if($teacher['room'] === ''): ?>
+                                        <button type="button" class="ghost-button" data-teacher-room-add>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
+                                                <path d="M12 8v6M9 11h6"></path>
+                                            </svg>
+                                            Raum hinzufügen
+                                        </button>
                                     <?php endif; ?>
+                                    <a class="ghost-button" href="<?php echo e(route('admin.teachers.appointments', $teacher['slug'])); ?>">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                            <path d="M16 2v4"></path>
+                                            <path d="M8 2v4"></path>
+                                            <path d="M3 10h18"></path>
+                                        </svg>
+                                        Termine
+                                    </a>
+                                    <a class="button" href="<?php echo e(route('admin.teachers.show', $teacher['slug'])); ?>">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M12 20h9"></path>
+                                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                        </svg>
+                                        Bearbeiten
+                                    </a>
                                 </div>
                             </div>
 
-                            <div class="list-row-actions actions-on-hover">
-                                <a class="ghost-button" href="<?php echo e(route('admin.teachers.appointments', $teacher['slug'])); ?>">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-                                        <path d="M16 2v4"></path>
-                                        <path d="M8 2v4"></path>
-                                        <path d="M3 10h18"></path>
+                            <div class="teacher-class-badges" aria-label="Zugeordnete Klassen">
+                                <?php $__empty_1 = true; $__currentLoopData = $teacher['classes']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $className): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <span class="teacher-class-badge">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m3 10 9-5 9 5-9 5Z"></path>
+                                            <path d="M7 12.5V17c2.8 2 7.2 2 10 0v-4.5"></path>
+                                        </svg>
+                                        <?php echo e($className); ?>
+
+                                    </span>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <span class="teacher-class-badge is-all">Alle Klassen</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <form
+                                method="POST"
+                                action="<?php echo e(route('admin.teachers.room.update', $teacher['slug'])); ?>"
+                                class="teacher-room-form admin-teacher-room-row <?php echo e($teacher['room'] === '' ? 'is-unassigned' : ''); ?>"
+                                data-teacher-room-form
+                            >
+                                <?php echo csrf_field(); ?>
+                                <label class="sr-only" for="teacher_room_<?php echo e($teacher['reference_id']); ?>">
+                                    Raum für <?php echo e($teacher['name']); ?>
+
+                                </label>
+                                <button
+                                    type="button"
+                                    class="teacher-room-inline-display"
+                                    data-teacher-room-edit
+                                    title="Doppelklicken zum Bearbeiten"
+                                    aria-label="Raum <?php echo e($teacher['room_label']); ?> bearbeiten"
+                                >
+                                    <svg class="room-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
                                     </svg>
-                                    Termine
-                                </a>
-                                <a class="button" href="<?php echo e(route('admin.teachers.show', $teacher['slug'])); ?>">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <span>Raum: <?php echo e($teacher['room_label']); ?></span>
+                                    <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M12 20h9"></path>
                                         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
                                     </svg>
-                                    Bearbeiten
-                                </a>
+                                </button>
+                                <input
+                                    id="teacher_room_<?php echo e($teacher['reference_id']); ?>"
+                                    type="text"
+                                    name="room"
+                                    value="<?php echo e($teacher['room']); ?>"
+                                    list="admin_room_options"
+                                    placeholder="Raum festlegen"
+                                    data-teacher-room-input
+                                    data-original-value="<?php echo e($teacher['room']); ?>"
+                                    hidden
+                                />
+                            </form>
+
+                            <div class="admin-teacher-slot-counts">
+                                <span class="badge"><?php echo e($teacher['free_slots']); ?> frei</span>
+                                <span class="badge"><?php echo e($teacher['booked_slots']); ?> gebucht</span>
+                                <?php if($teacher['duration_changed']): ?>
+                                    <span class="status-chip">Termindauer geändert</span>
+                                <?php endif; ?>
                             </div>
                         </article>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -290,9 +352,15 @@
             <?php else: ?>
                 <p class="empty-copy">Noch keine Lehrer angelegt.</p>
             <?php endif; ?>
+
+            <datalist id="admin_room_options">
+                <?php $__currentLoopData = $rooms; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $room): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($room->name); ?>"></option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </datalist>
         </section>
 
-        <section class="panel" id="teacher-create" data-admin-menu="teachers" hidden>
+        <section class="panel admin-teachers-panel" id="teacher-create" data-admin-menu="teachers" hidden>
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Lehrer anlegen</h2>
@@ -565,6 +633,11 @@
             </div>
 
             <div class="panel-body" data-collapsible-content>
+                <form id="import-parent-day-create" method="POST" action="<?php echo e(route('admin.parent-day.update')); ?>">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="return_to" value="import" />
+                </form>
+
                 <form method="POST" action="<?php echo e(route('admin.teachers.import')); ?>" enctype="multipart/form-data" class="stack" data-import>
                     <?php echo csrf_field(); ?>
 
@@ -583,84 +656,106 @@
                         </p>
                     </div>
 
-                    <?php if($canGenerateTimeslots): ?>
-                        <div class="field field-inline">
-                            <label for="create_timeslots">Termine direkt anlegen</label>
-                            <div class="field-inline-row">
-                                <label class="class-chip" style="padding: 6px 10px;">
-                                    <input id="create_timeslots" type="checkbox" name="create_timeslots" />
-                                    <span>Standard-Termine erzeugen</span>
-                                </label>
+                    <div class="field">
+                        <label>Elternsprechtage für die importierten Lehrer</label>
+                        <?php if($parentDays->isNotEmpty()): ?>
+                            <?php
+                                $selectedImportParentDays = collect(
+                                    old('parent_day_ids', [$activeParentDay?->id])
+                                )->map(fn ($id) => (int) $id)->all();
+                            ?>
+                            <div class="button-row import-days-toolbar">
+                                <button type="button" class="ghost-button button-compact" data-import-days-all>
+                                    Alle auswählen
+                                </button>
+                                <button type="button" class="ghost-button button-compact" data-import-days-none>
+                                    Auswahl löschen
+                                </button>
                             </div>
+                            <div class="import-parent-days">
+                                <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <label class="class-chip">
+                                        <input
+                                            type="checkbox"
+                                            name="parent_day_ids[]"
+                                            value="<?php echo e($day->id); ?>"
+                                            <?php if(in_array($day->id, $selectedImportParentDays, true)): echo 'checked'; endif; ?>
+                                        />
+                                        <span><?php echo e($day->date->format('d.m.Y')); ?></span>
+                                    </label>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <div class="import-parent-day-add">
+                                    <input
+                                        type="date"
+                                        name="parent_day"
+                                        form="import-parent-day-create"
+                                        aria-label="Elternsprechtag hinzufügen"
+                                        data-import-parent-day-input
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <p class="hint">Wähle alle Tage aus, an denen diese Lehrer Termine erhalten sollen.</p>
+                        <?php else: ?>
+                            <p class="empty-copy">Lege direkt den ersten Elternsprechtag an.</p>
+                            <div class="import-parent-days">
+                                <div class="import-parent-day-add">
+                                    <input
+                                        type="date"
+                                        name="parent_day"
+                                        form="import-parent-day-create"
+                                        aria-label="Elternsprechtag hinzufügen"
+                                        data-import-parent-day-input
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                        <div class="field">
+                            <label for="import_timeslot_duration">Standard-Termindauer</label>
+                            <input
+                                id="import_timeslot_duration"
+                                type="number"
+                                name="timeslot_duration"
+                                min="5"
+                                max="120"
+                                step="5"
+                                value="<?php echo e(old('timeslot_duration', 10)); ?>"
+                                required
+                            />
                         </div>
 
-                        <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));" data-import-timeslots>
-                            <div class="field">
-                                <label for="import_timeslot_duration">Termin-Dauer in Minuten</label>
-                                <input
-                                    id="import_timeslot_duration"
-                                    type="number"
-                                    name="timeslot_duration"
-                                    min="5"
-                                    step="5"
-                                    value="<?php echo e(old('timeslot_duration', '')); ?>"
-                                    placeholder="z.B. 10"
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_parent_day">Datum des Elternsprechtags</label>
-                                <input
-                                    id="import_timeslot_parent_day"
-                                    type="text"
-                                    value="<?php echo e($parentDayLabel); ?>"
-                                    readonly
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_start">Beginn</label>
-                                <input
-                                    id="import_timeslot_start"
-                                    type="time"
-                                    name="timeslot_start"
-                                    value="<?php echo e(old('timeslot_start', '')); ?>"
-                                    min="00:00"
-                                    max="23:59"
-                                    step="60"
-                                    lang="de-AT"
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_end">Ende</label>
-                                <input
-                                    id="import_timeslot_end"
-                                    type="time"
-                                    name="timeslot_end"
-                                    value="<?php echo e(old('timeslot_end', '')); ?>"
-                                    min="00:00"
-                                    max="23:59"
-                                    step="60"
-                                    lang="de-AT"
-                                />
-                            </div>
-
-                            <div class="field">
-                                <label for="import_timeslot_room">Raum</label>
-                                <input
-                                    id="import_timeslot_room"
-                                    type="text"
-                                    name="timeslot_room"
-                                    value="<?php echo e(old('timeslot_room', '')); ?>"
-                                    placeholder="z.B. B201"
-                                />
-                            </div>
+                        <div class="field">
+                            <label for="import_timeslot_start">Beginn</label>
+                            <input
+                                id="import_timeslot_start"
+                                type="time"
+                                name="timeslot_start"
+                                value="<?php echo e(old('timeslot_start', '17:00')); ?>"
+                                step="60"
+                                required
+                            />
                         </div>
-                    <?php endif; ?>
+
+                        <div class="field">
+                            <label for="import_timeslot_end">Ende</label>
+                            <input
+                                id="import_timeslot_end"
+                                type="time"
+                                name="timeslot_end"
+                                value="<?php echo e(old('timeslot_end', '19:00')); ?>"
+                                step="60"
+                                required
+                            />
+                        </div>
+
+                    </div>
 
                     <div class="button-row">
-                        <button type="submit" class="button">Import starten</button>
+                        <button type="submit" class="button" <?php if($parentDays->isEmpty()): echo 'disabled'; endif; ?>>Import starten</button>
                     </div>
                 </form>
             </div>
@@ -783,23 +878,72 @@
                 render();
             }
 
-            const importForm = document.querySelector('[data-import]');
-            if (importForm) {
-                const toggle = importForm.querySelector('#create_timeslots');
-                const timeslotFields = importForm.querySelectorAll('[data-import-timeslots] input');
+            const importDayCheckboxes = Array.from(
+                document.querySelectorAll('.import-parent-days input[name="parent_day_ids[]"]')
+            );
 
-                const sync = () => {
-                    const enabled = toggle && toggle.checked;
-                    timeslotFields.forEach((field) => {
-                        field.disabled = !enabled;
-                    });
+            document.querySelector('[data-import-days-all]')?.addEventListener('click', () => {
+                importDayCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = true;
+                });
+            });
+
+            document.querySelector('[data-import-days-none]')?.addEventListener('click', () => {
+                importDayCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = false;
+                });
+            });
+
+            const importParentDayInput = document.querySelector('[data-import-parent-day-input]');
+            importParentDayInput?.addEventListener('blur', () => {
+                if (importParentDayInput.value && importParentDayInput.checkValidity()) {
+                    document.querySelector('#import-parent-day-create')?.requestSubmit();
+                }
+            });
+
+            document.querySelectorAll('[data-teacher-room-form]').forEach((form) => {
+                const input = form.querySelector('[data-teacher-room-input]');
+                const editTrigger = form.querySelector('[data-teacher-room-edit]');
+                const teacherRow = form.closest('.admin-teacher-row');
+                const addTrigger = teacherRow?.querySelector('[data-teacher-room-add]');
+
+                if (!(input instanceof HTMLInputElement)) {
+                    return;
+                }
+
+                const openRoomEditor = () => {
+                    editTrigger.hidden = true;
+                    input.hidden = false;
+                    input.focus();
+                    input.select();
                 };
 
-                if (toggle) {
-                    toggle.addEventListener('change', sync);
-                    sync();
-                }
-            }
+                editTrigger?.addEventListener('dblclick', openRoomEditor);
+                addTrigger?.addEventListener('click', openRoomEditor);
+
+                input.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        input.blur();
+                    }
+                });
+
+                input.addEventListener('blur', () => {
+                    const currentValue = input.value.trim();
+                    const originalValue = input.dataset.originalValue?.trim() ?? '';
+
+                    if (currentValue !== originalValue) {
+                        input.value = currentValue;
+                        form.requestSubmit();
+                        return;
+                    }
+
+                    if (editTrigger) {
+                        input.hidden = true;
+                        editTrigger.hidden = false;
+                    }
+                });
+            });
 
             const collapsibles = document.querySelectorAll('[data-collapsible]');
             collapsibles.forEach((panel) => {

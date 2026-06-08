@@ -60,38 +60,27 @@
             </form>
         </section>
 
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <span class="eyebrow">Elternsprechtag</span>
-                    <h2 class="panel-title">Termindauer einstellen</h2>
-                    <p class="panel-subtitle">Aktiver Elternsprechtag: <?php echo e($parentDayLabel); ?></p>
-                </div>
-            </div>
-
-            <form method="POST" action="<?php echo e(route('admin.teachers.duration.update', $teacher['slug'])); ?>" class="stack">
+        <section class="panel compact-settings-panel">
+            <form method="POST" action="<?php echo e(route('admin.teachers.duration.update', $teacher['slug'])); ?>" class="compact-settings-form">
                 <?php echo csrf_field(); ?>
-                <div class="field field-inline">
-                    <label for="timeslot_duration">Dauer in Minuten</label>
-                    <div class="field-inline-row">
-                        <input
-                            id="timeslot_duration"
-                            type="number"
-                            name="timeslot_duration"
-                            min="5"
-                            step="5"
-                            value="<?php echo e(old('timeslot_duration', $teacher['timeslot_duration'] ?? 10)); ?>"
-                            required
-                            <?php if(! $canEditParentDay): ?> disabled <?php endif; ?>
-                        />
-                        <?php if($canEditParentDay): ?>
-                            <button type="submit" class="button">Speichern</button>
-                        <?php else: ?>
-                            <span class="badge">Nur Ansicht</span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <p class="hint">Diese Termindauer gilt nur fuer den aktuell gewaehlten Elternsprechtag.</p>
+                <label for="timeslot_duration"><strong>Termindauer</strong></label>
+                <input
+                    id="timeslot_duration"
+                    type="number"
+                    name="timeslot_duration"
+                    min="5"
+                    step="5"
+                    value="<?php echo e(old('timeslot_duration', $teacher['timeslot_duration'] ?? 10)); ?>"
+                    aria-label="Termindauer in Minuten"
+                    required
+                    <?php if(! $canEditParentDay): ?> disabled <?php endif; ?>
+                />
+                <span class="hint">Minuten · <?php echo e($parentDayLabel); ?></span>
+                <?php if($canEditParentDay): ?>
+                    <button type="submit" class="button button-compact">Speichern</button>
+                <?php else: ?>
+                    <span class="badge">Nur Ansicht</span>
+                <?php endif; ?>
             </form>
         </section>
 
@@ -108,28 +97,19 @@
                 <?php if($classOptions->isEmpty()): ?>
                     <p class="empty-copy">Es sind noch keine Klassen verfügbar.</p>
                 <?php else: ?>
-                    <div class="class-subject-grid">
+                    <div class="class-grid-compact">
                         <?php $__currentLoopData = $classOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $className): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <?php ($isChecked = in_array($className, old('classes', $teacher['classes']), true)); ?>
-                            <div class="class-subject-row">
-                                <label class="class-chip">
-                                    <input
-                                        type="checkbox"
-                                        name="classes[]"
-                                        value="<?php echo e($className); ?>"
-                                        <?php echo e($isChecked ? 'checked' : ''); ?>
-
-                                    />
-                                    <span><?php echo e($className); ?></span>
-                                </label>
+                            <label class="class-chip">
                                 <input
-                                    type="text"
-                                    name="class_subjects[<?php echo e($className); ?>]"
-                                    value="<?php echo e(old('class_subjects.'.$className, $classSubjectMap[$className] ?? '')); ?>"
-                                    placeholder="Faecher, z.B. Mathe, Physik"
-                                    class="class-subject-input"
+                                    type="checkbox"
+                                    name="classes[]"
+                                    value="<?php echo e($className); ?>"
+                                    <?php echo e($isChecked ? 'checked' : ''); ?>
+
                                 />
-                            </div>
+                                <span><?php echo e($className); ?></span>
+                            </label>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 <?php endif; ?>
@@ -159,10 +139,8 @@
     'theme' => 'admin',
     'homeRoute' => 'admin.dashboard',
     'navLinks' => [
-        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
-        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity'],
-        ['label' => 'Datumfestlegung', 'href' => route('admin.dashboard').'#parent-day'],
+        ['label' => 'Übersicht', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
         ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
-        ['label' => 'Terminübersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
+        ['label' => 'Termine', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
     ],
 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /var/www/resources/views/admin/teacher-show.blade.php ENDPATH**/ ?>

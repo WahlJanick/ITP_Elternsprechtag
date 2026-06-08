@@ -4,8 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>PRESS. Elternsprechtag</title>
-        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
+        <link rel="icon" type="image/png" href="<?php echo e(asset('favicon.png')); ?>">
+        <link rel="shortcut icon" href="<?php echo e(asset('favicon.png')); ?>">
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=cormorant-garamond:500,600,700|instrument-sans:400,500,600,700" rel="stylesheet" />
         <style>
@@ -190,7 +190,7 @@
     <body>
         <main class="login-shell">
             <img
-                src="{{ asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png') }}"
+                src="<?php echo e(asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png')); ?>"
                 alt="HTL Waidhofen"
                 class="school-logo"
             >
@@ -205,7 +205,7 @@
             <p class="brand">PRESS.</p>
 
             <div class="login-area">
-                <a href="{{ route('auth.azure') }}" class="login-button">
+                <a href="<?php echo e(route('auth.azure')); ?>" class="login-button">
                     <svg class="microsoft-logo" viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="#f25022" d="M1 1h10v10H1z"/>
                         <path fill="#7fba00" d="M13 1h10v10H13z"/>
@@ -221,9 +221,10 @@
                 <p class="login-hint">Anmeldung mit dem Microsoft-Schulkonto.</p>
             </div>
 
-            @if(session('error'))
-                <div class="error">{{ session('error') }}</div>
-            @endif
+            <?php if(session('error')): ?>
+                <div class="error"><?php echo e(session('error')); ?></div>
+            <?php endif; ?>
         </main>
     </body>
 </html>
+<?php /**PATH C:\3AHIT\ITP\PRESS_stand11052026\PRESS._Elternsprechtag_Projekt\laravel_resSys_Backup\resources\views/anmelden.blade.php ENDPATH**/ ?>

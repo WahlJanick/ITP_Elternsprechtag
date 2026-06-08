@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/teachers/{teacher}/quick-update', [PortalController::class, 'adminTeacherQuickUpdate'])->name('admin.teachers.quick-update');
     Route::post('/admin/teachers/{teacher}/update', [PortalController::class, 'adminTeacherUpdate'])->name('admin.teachers.update');
     Route::post('/admin/teachers/{teacher}/duration', [PortalController::class, 'adminTeacherDurationUpdate'])->name('admin.teachers.duration.update');
+    Route::post('/admin/teachers/{teacher}/room', [PortalController::class, 'adminTeacherRoomUpdate'])->name('admin.teachers.room.update');
     Route::post('/admin/teachers/{teacher}/classes', [PortalController::class, 'adminTeacherClassesUpdate'])->name('admin.teachers.classes.update');
     Route::post('/admin/teachers/{teacher}/activities/delete', [PortalController::class, 'adminTeacherActivityDelete'])->name('admin.teachers.activities.delete');
     Route::post('/admin/teachers/activities/delete-all', [PortalController::class, 'adminTeacherActivitiesDeleteAll'])->name('admin.teachers.activities.delete-all');

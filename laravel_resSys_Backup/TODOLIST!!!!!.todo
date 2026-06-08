@@ -1,10 +1,3 @@
-* Beim Switchen der Elternsprechtagdates auf der Schüleransicht wird automatisch auf /student/teachers navigiert - dies soll nicht sein!
-* Die "Navigation vorherige und nächste": Die Überschrift löschen und wenn nur ein Lehrer vorhanden ist diese garnicht anzeigen
-* Den Text "Verfügbare Termine von 17:00 - 19:00 Uhr. Ein Schüler kann maximal einen Termin pro Lehrer buchen." der dynamisch mitgegeben wird anpassen
-* Bei der Liste der Termine bei Lehrer Filteroptionen Wie *gebucht *frei *alles nutzen
-  -> Generelle Zusammenfassung und Platzsparen bei den Terminübersichten ... statt Freier Termin / Offen / Raum / Uhrzeit einfach nur die Uhrzeit als identifikationsmerkmal.
-  -> nebenbei steht ja bei "frei" oder "gebucht" eh, ob ein Timeslot besetzt ist oder nicht.
-  -> es steht nur Uhrzeit - wenn gebucht dann Uhrzeit und der Schüleransicht
-* Jedem Button mit SVG Symbol ausstatten
-* die Navigationsleiste beim Adminpanel übersichtlicher machen
-* Die Termindauereinstellung bei den Lehrern soll auch kleiner, platzsparender gemacht werden.
+Handy ansicht mergen
+Buttons bei Lehrerübersicht bei Admin fixen
+CSS Farbumgebung improven

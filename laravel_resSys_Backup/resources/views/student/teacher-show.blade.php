@@ -80,11 +80,9 @@
                 radio.addEventListener('change', function() {
                     document.getElementById('book-button').disabled = false;
                     document.querySelectorAll('.slot-button').forEach(btn => {
-                        btn.style.background = 'rgba(255, 255, 255, 0.64)';
-                        btn.style.borderColor = '';
+                        btn.classList.remove('is-selected');
                     });
-                    this.closest('.slot-button').style.background = '#d7e6ff';
-                    this.closest('.slot-button').style.borderColor = '#4d79ce';
+                    this.closest('.slot-button').classList.add('is-selected');
                 });
             });
         </script>

@@ -11,6 +11,7 @@ class TeacherParentDaySetting extends Model
         'teacher_id',
         'parent_day_id',
         'timeslot_duration',
+        'room',
         'duration_changed_at',
         'duration_changed_by_teacher',
     ];

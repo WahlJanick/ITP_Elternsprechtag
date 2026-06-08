@@ -249,9 +249,11 @@ class PortalController extends Controller
         $parentDay = $this->currentParentDay();
         $parentDays = $this->availableParentDaysForCurrentUser();
         $currentDuration = null;
+        $teacherRoom = null;
 
         if ($teacher !== null) {
             $currentDuration = $this->resolveTeacherDuration($teacher, $parentDay);
+            $teacherRoom = $this->getTeacherRoom($teacher->teacher_id);
             $dateLabel = $this->parentDayLabel();
             $appointments = Timeslot::query()
                 ->with('student')
@@ -275,6 +277,7 @@ class PortalController extends Controller
         return view('teacher.dashboard', [
             'appointments' => $appointments,
             'teacher' => $teacher,
+            'teacherRoom' => $teacherRoom,
             'currentDuration' => $currentDuration,
             'hasTeacherMapping' => $teacher !== null,
             'parentDays' => $parentDays,
@@ -372,6 +375,7 @@ class PortalController extends Controller
 
         $validated = $request->validate([
             'parent_day' => 'required|date',
+            'return_to' => 'nullable|in:import',
         ]);
 
         $dateValue = Carbon::parse($validated['parent_day'])->toDateString();
@@ -381,9 +385,11 @@ class PortalController extends Controller
 
         session(['parent_day_id' => $parentDay->id]);
 
-        return redirect()
-            ->route('admin.dashboard')
-            ->with('success', 'Elternsprechtag wurde gespeichert.');
+        $redirect = ($validated['return_to'] ?? null) === 'import'
+            ? redirect()->to(route('admin.dashboard').'#excel-import')
+            : redirect()->route('admin.dashboard');
+
+        return $redirect->with('success', 'Elternsprechtag wurde gespeichert.');
     }
 
     public function adminParentDayDelete(ParentDay $parentDay): RedirectResponse
@@ -884,6 +890,46 @@ class PortalController extends Controller
             ->with('success', "Lehrer {$teacherModel->full_name} wurde aktualisiert.");
     }
 
+    public function adminTeacherRoomUpdate(Request $request, string $teacher): RedirectResponse
+    {
+        $this->ensureAdmin();
+
+        $selectedTeacher = $this->allTeacherProfiles()->firstWhere('slug', $teacher);
+        $parentDay = $this->currentParentDay();
+
+        abort_if(! $selectedTeacher || ! $parentDay, 404);
+
+        $validated = $request->validate([
+            'room' => 'nullable|string|max:255',
+        ]);
+
+        $room = $this->normalizeRoomName((string) ($validated['room'] ?? ''));
+        $setting = TeacherParentDaySetting::firstOrNew([
+            'teacher_id' => $selectedTeacher['reference_id'],
+            'parent_day_id' => $parentDay->id,
+        ]);
+        $setting->room = $room !== '' ? $room : null;
+        $setting->save();
+
+        Timeslot::query()
+            ->where('teacher_id', $selectedTeacher['reference_id'])
+            ->where('parent_day_id', $parentDay->id)
+            ->update(['room' => $room]);
+
+        if ($room !== '') {
+            $this->ensureRoomsTableExists();
+            Room::query()->firstOrCreate(['name' => $room]);
+        }
+
+        $message = $room !== ''
+            ? "Raum {$room} wurde für {$selectedTeacher['name']} gespeichert."
+            : "Die Raumzuordnung für {$selectedTeacher['name']} wurde entfernt.";
+
+        return redirect()
+            ->to(route('admin.dashboard').'#teachers')
+            ->with('success', $message);
+    }
+
     public function adminTeacherClassesUpdate(Request $request, string $teacher): RedirectResponse
     {
         $this->ensureAdmin();
@@ -991,6 +1037,16 @@ class PortalController extends Controller
                 ->get()
                 ->keyBy('teacher_id')
             : collect();
+        $roomsByTeacher = $parentDay
+            ? Timeslot::query()
+                ->where('parent_day_id', $parentDay->id)
+                ->whereNotNull('room')
+                ->where('room', '<>', '')
+                ->orderBy('starts_at')
+                ->get(['teacher_id', 'room'])
+                ->unique('teacher_id')
+                ->pluck('room', 'teacher_id')
+            : collect();
 
         return Teacher::query()
             ->withCount([
@@ -1004,9 +1060,10 @@ class PortalController extends Controller
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get()
-            ->map(function (Teacher $teacher) use ($settingsByTeacher) {
+            ->map(function (Teacher $teacher) use ($settingsByTeacher, $roomsByTeacher) {
                 $setting = $settingsByTeacher->get($teacher->teacher_id);
                 $duration = $setting?->timeslot_duration ?? $teacher->timeslot_duration;
+                $room = trim((string) ($setting?->room ?? $roomsByTeacher->get($teacher->teacher_id, '')));
                 $durationChanged = (bool) ($setting?->duration_changed_by_teacher ?? false);
                 $durationChangedLabel = $setting?->duration_changed_at
                     ? $setting->duration_changed_at->format('d/m/Y H:i')
@@ -1026,6 +1083,8 @@ class PortalController extends Controller
                     'reference_id' => $teacher->teacher_id,
                     'timeslot_duration' => $duration,
                     'timeslot_duration_label' => $duration ? $duration.' min' : 'Standard',
+                    'room' => $room,
+                    'room_label' => $room !== '' ? $room : 'Noch nicht festgelegt',
                     'duration_changed' => $durationChanged,
                     'duration_changed_label' => $durationChangedLabel,
                 ];
@@ -1076,8 +1135,25 @@ class PortalController extends Controller
     private function teachersForCurrentStudent(): Collection
     {
         $studentClass = $this->currentStudentClass();
+        $parentDay = $this->currentParentDay();
+        $assignedTeacherIds = $parentDay
+            ? Timeslot::query()
+                ->where('parent_day_id', $parentDay->id)
+                ->pluck('teacher_id')
+            : collect();
+
+        if ($parentDay && Schema::hasTable('teacher_parent_day_settings')) {
+            $assignedTeacherIds = $assignedTeacherIds
+                ->merge(
+                    TeacherParentDaySetting::query()
+                        ->where('parent_day_id', $parentDay->id)
+                        ->pluck('teacher_id')
+                )
+                ->unique();
+        }
 
         return $this->allTeacherProfiles()
+            ->filter(fn (array $teacher) => $assignedTeacherIds->contains($teacher['reference_id']))
             ->filter(fn (array $teacher) => $this->teacherMatchesStudentClass($teacher, $studentClass))
             ->values();
     }
@@ -1166,12 +1242,28 @@ class PortalController extends Controller
     private function getTeacherRoom(int $teacherId): string
     {
         $parentDay = $this->currentParentDay();
+
+        if (! $parentDay) {
+            return '';
+        }
+
+        $settingRoom = TeacherParentDaySetting::query()
+            ->where('teacher_id', $teacherId)
+            ->where('parent_day_id', $parentDay->id)
+            ->value('room');
+
+        if (filled($settingRoom)) {
+            return trim((string) $settingRoom);
+        }
+
         $firstSlot = Timeslot::query()
             ->where('teacher_id', $teacherId)
-            ->when($parentDay, fn ($query) => $query->where('parent_day_id', $parentDay->id))
+            ->where('parent_day_id', $parentDay->id)
+            ->whereNotNull('room')
+            ->where('room', '<>', '')
             ->first();
 
-        return $firstSlot?->room ?? 'Noch offen';
+        return $firstSlot?->room ?? '';
     }
 
     private function getAdjacentTeachers(Collection $teachers, string $currentSlug): Collection
@@ -1297,6 +1389,15 @@ class PortalController extends Controller
                 $table->boolean('duration_changed_by_teacher')->default(false);
             });
         }
+
+        if (
+            Schema::hasTable('teacher_parent_day_settings')
+            && ! Schema::hasColumn('teacher_parent_day_settings', 'room')
+        ) {
+            Schema::table('teacher_parent_day_settings', function (Blueprint $table) {
+                $table->string('room')->nullable();
+            });
+        }
     }
 
     private function currentParentDay(): ?ParentDay
@@ -1340,6 +1441,30 @@ class PortalController extends Controller
             $query->whereDate('date', '>=', Carbon::today()->toDateString());
         }
 
+        if ($user?->isTeacherUser()) {
+            $teacher = $this->currentTeacher();
+
+            if (! $teacher) {
+                return collect();
+            }
+
+            $query->where(function ($parentDayQuery) use ($teacher) {
+                $parentDayQuery->whereHas(
+                    'timeslots',
+                    fn ($timeslotQuery) => $timeslotQuery
+                        ->where('teacher_id', $teacher->teacher_id)
+                );
+
+                if (Schema::hasTable('teacher_parent_day_settings')) {
+                    $parentDayQuery->orWhereHas(
+                        'teacherSettings',
+                        fn ($settingQuery) => $settingQuery
+                            ->where('teacher_id', $teacher->teacher_id)
+                    );
+                }
+            });
+        }
+
         return $query->get();
     }
 
@@ -1373,13 +1498,23 @@ class PortalController extends Controller
             'timeslot_duration' => 'required|integer|min:5|max:120',
             'timeslot_start' => 'required|date_format:H:i',
             'timeslot_end' => 'required|date_format:H:i|after:timeslot_start',
-            'timeslot_room' => 'required|string|max:255',
         ]);
 
         $selectedParentDays = ParentDay::query()
             ->whereIn('id', $validated['parent_day_ids'])
             ->orderBy('date')
             ->get();
+
+        if (! $this->hasEnoughTimeForSlot(
+            $validated['timeslot_start'],
+            $validated['timeslot_end'],
+            (int) $validated['timeslot_duration']
+        )) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Die Standard-Termindauer passt nicht in das gewählte Zeitfenster.');
+        }
 
         $file = $request->file('teacher_file');
 
@@ -1550,7 +1685,7 @@ class PortalController extends Controller
                     $validated['timeslot_start'],
                     $validated['timeslot_end'],
                     (int) $validated['timeslot_duration'],
-                    $validated['timeslot_room']
+                    ''
                 );
 
                 $createdTimeslotCount += $timeslotResult['created'];
