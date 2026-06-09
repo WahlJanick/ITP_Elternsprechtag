@@ -30,6 +30,15 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(SocialiteWasCalled::class, AzureExtendSocialite::class);
 
         View::composer('layouts.portal', function ($view) {
+            $viewData = $view->getData();
+
+            if (
+                array_key_exists('parentDays', $viewData)
+                && array_key_exists('activeParentDay', $viewData)
+            ) {
+                return;
+            }
+
             if (! Schema::hasTable('parent_days')) {
                 $view->with([
                     'parentDays' => collect(),

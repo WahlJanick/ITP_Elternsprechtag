@@ -4,8 +4,8 @@
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
-        ['label' => 'Start', 'route' => 'student.booking', 'active' => 'student.booking'],
-        ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings'],
+        ['label' => 'Übersicht', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings', 'disabled' => ! $hasBookings],
     ],
 ])
 
@@ -16,15 +16,12 @@
                 <div>
                     <span class="eyebrow">Buchung</span>
                     <h2 class="panel-title">Lehrer, die dich unterrichten</h2>
-                    <p class="panel-subtitle">
-                        @if($currentClass)
-                            Klasse {{ $currentClass }}. Lehrer ohne freie Slots bleiben sichtbar.
-                        @else
-                            Wähle einen Lehrer aus.
-                        @endif
-                    </p>
                 </div>
-                <a class="button" href="{{ route('student.bookings') }}">Meine Termine</a>
+                @if($hasBookings)
+                    <a class="button" href="{{ route('student.bookings') }}">Meine Termine</a>
+                @else
+                    <span class="button is-disabled" aria-disabled="true">Meine Termine</span>
+                @endif
             </div>
 
             @if($teachers->isEmpty())

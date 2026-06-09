@@ -72,6 +72,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     libicu-dev \
     libzip-dev \
+    libfreetype6 \
+    libjpeg62-turbo \
+    libpng16-16t64 \
     libfcgi-bin \
     procps \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -167,7 +170,8 @@ RUN if getent group ${GID}; then \
       group_name=www; \
     fi && \
     sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
-    sed -i "s/group = www-data/group = ${group_name}/g" /usr/local/etc/php-fpm.d/www.conf
+    sed -i "s/group = www-data/group = ${group_name}/g" /usr/local/etc/php-fpm.d/www.conf && \
+    chown -R ${UID}:${GID} /var/www/vendor /var/www/storage /var/www/bootstrap/cache
 
 
 # Set the working directory

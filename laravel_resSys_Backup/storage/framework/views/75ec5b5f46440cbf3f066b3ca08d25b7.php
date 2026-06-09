@@ -3,8 +3,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Lehrertermine</span>
-                    <h2 class="panel-title"><?php echo e($teacher['name']); ?> (<?php echo e($teacher['short']); ?>)</h2>
+                    <h2 class="eyebrow eyebrow-heading">Lehrertermine</h2>
                     <div class="button-row" style="margin-top: 12px;">
                         <span class="badge"><?php echo e($teacher['display_classes']); ?></span>
                         <span class="badge"><?php echo e($teacher['timeslot_duration_label']); ?></span>
@@ -45,14 +44,22 @@
             <?php if($appointments->isEmpty()): ?>
                 <p class="empty-copy">Für diesen Lehrer wurden noch keine Termine angelegt.</p>
             <?php else: ?>
+                <div class="appointment-filter" data-appointment-filters>
+                    <button type="button" class="filter-button is-active" data-appointment-filter="all">Alle</button>
+                    <button type="button" class="filter-button" data-appointment-filter="free">Frei</button>
+                    <button type="button" class="filter-button" data-appointment-filter="booked">Gebucht</button>
+                </div>
+
                 <div class="appointments-list">
                     <?php $__currentLoopData = $appointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $appointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <article class="appointment-row">
+                        <article class="appointment-row" data-appointment-status="<?php echo e($appointment['is_reserved'] ? 'booked' : 'free'); ?>">
                             <div class="appointment-time"><?php echo e($appointment['time_label']); ?></div>
 
                             <div class="appointment-main">
-                                <p class="appointment-title"><?php echo e($appointment['student_name']); ?></p>
-                                <p class="appointment-meta"><?php echo e($appointment['date_label']); ?> · <?php echo e($appointment['class_name']); ?> · Raum <?php echo e($appointment['room']); ?></p>
+                                <?php if($appointment['is_reserved']): ?>
+                                    <p class="appointment-title"><?php echo e($appointment['student_name']); ?></p>
+                                    <p class="appointment-meta"><?php echo e($appointment['class_name']); ?></p>
+                                <?php endif; ?>
                             </div>
 
                             <div class="appointment-actions">
@@ -111,10 +118,9 @@
     'theme' => 'admin',
     'homeRoute' => 'admin.dashboard',
     'navLinks' => [
-        ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
-        ['label' => 'Lehreraktivitäten', 'href' => route('admin.dashboard').'#teacher-activity'],
+        ['label' => 'Übersicht', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
         ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
         ['label' => 'Bearbeiten', 'route' => 'admin.teachers.show', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.show'],
-        ['label' => 'Terminübersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
+        ['label' => 'Termine', 'route' => 'admin.teachers.appointments', 'params' => [$teacher['slug']], 'active_exact' => 'admin.teachers.appointments'],
     ],
 ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /var/www/resources/views/admin/teacher-appointments.blade.php ENDPATH**/ ?>

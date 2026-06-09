@@ -260,9 +260,26 @@
                 flex: 0 0 18px;
             }
 
-            .parent-day-select select {
-                width: 100%;
+            .parent-day-control {
+                position: relative;
                 min-width: 175px;
+            }
+
+            .parent-day-select select {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+
+            .parent-day-trigger {
+                position: relative;
+                width: 100%;
                 min-height: 38px;
                 padding: 6px 38px 6px 12px;
                 border-radius: 9px;
@@ -271,17 +288,106 @@
                 color: var(--header-link-copy);
                 font-weight: 700;
                 cursor: pointer;
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173f7b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 10px center;
-                background-size: 18px;
+                outline: none;
+                text-align: left;
+                box-shadow: 0 4px 10px color-mix(in srgb, var(--header-link-border) 16%, transparent);
+                transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+            }
+
+            .parent-day-trigger::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                right: 13px;
+                width: 8px;
+                height: 8px;
+                border-right: 2px solid currentColor;
+                border-bottom: 2px solid currentColor;
+                transform: translateY(-70%) rotate(45deg);
+                transition: transform 0.16s ease;
+            }
+
+            .parent-day-control.is-open .parent-day-trigger::after {
+                transform: translateY(-20%) rotate(225deg);
+            }
+
+            .parent-day-trigger:hover,
+            .parent-day-trigger:focus-visible,
+            .parent-day-control.is-open .parent-day-trigger {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+            }
+
+            .parent-day-menu {
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                z-index: 1100;
+                display: grid;
+                gap: 5px;
+                width: max(100%, 190px);
+                max-height: min(320px, 55vh);
+                padding: 7px;
+                overflow-y: auto;
+                border: 2px solid color-mix(in srgb, var(--panel-stroke) 70%, white);
+                border-radius: 12px;
+                background: color-mix(in srgb, var(--panel-bg) 28%, white);
+                color: var(--copy);
+                box-shadow: 0 18px 38px rgba(16, 36, 70, 0.24);
+                transform-origin: top right;
+                animation: parent-day-menu-in 0.14s ease-out;
+            }
+
+            .parent-day-menu[hidden] {
+                display: none;
+            }
+
+            .parent-day-option {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                width: 100%;
+                min-height: 42px;
+                padding: 8px 11px;
+                border: 2px solid transparent;
+                border-radius: 9px;
+                background: transparent;
+                color: var(--copy);
+                font-weight: 700;
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .parent-day-option:hover,
+            .parent-day-option:focus-visible {
+                border-color: color-mix(in srgb, var(--accent) 55%, var(--panel-stroke));
+                background: color-mix(in srgb, var(--accent) 18%, white);
                 outline: none;
             }
 
-            .parent-day-select select:focus {
+            .parent-day-option.is-selected {
                 border-color: var(--accent);
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+                background: color-mix(in srgb, var(--accent) 28%, white);
+                color: var(--heading);
+            }
+
+            .parent-day-option.is-selected::after {
+                content: '✓';
+                font-size: 0.95rem;
+                font-weight: 800;
+            }
+
+            @keyframes parent-day-menu-in {
+                from {
+                    opacity: 0;
+                    transform: translateY(-4px) scale(0.98);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
             }
 
             .parent-day-status {
@@ -375,6 +481,16 @@
 
             .header-link.is-active {
                 background: var(--header-link-active-bg);
+            }
+
+            .header-link.is-disabled,
+            .mobile-nav-link.is-disabled,
+            .button.is-disabled,
+            .ghost-button.is-disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                pointer-events: none;
+                filter: saturate(0.55);
             }
 
             .header-link:hover,
@@ -499,6 +615,11 @@
                 text-transform: uppercase;
             }
 
+            .eyebrow-heading {
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+
             .panel-title,
             .hero-title {
                 margin: 0;
@@ -507,7 +628,6 @@
                 font-weight: 800;
             }
 
-            .panel-subtitle,
             .hero-copy,
             .hint,
             .meta-copy {
@@ -802,6 +922,16 @@
                 background: var(--accent);
                 color: var(--accent-copy);
                 outline: none;
+            }
+
+            .filter-button.is-muted {
+                opacity: 0.68;
+            }
+
+            .filter-button.is-muted:hover,
+            .filter-button.is-muted:focus-visible,
+            .filter-button.is-muted.is-active {
+                opacity: 1;
             }
 
             [data-appointment-status][hidden] {
@@ -1697,6 +1827,10 @@
                 display: none;
             }
 
+            .mobile-nav {
+                display: none;
+            }
+
             @media (max-width: 860px) {
                 .hero-grid,
                 .filters {
@@ -1719,22 +1853,160 @@
 
             @media (max-width: 640px) {
                 .header-inner {
-                    gap: 12px;
+                    min-height: 72px;
+                    padding: 8px 12px 10px;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .logo-link {
+                    display: flex;
+                    width: calc(100% - 108px);
+                }
+
+                .logo-link img {
+                    height: 48px !important;
+                    max-width: 100%;
+                    object-fit: contain;
                 }
 
                 .header-actions {
-                    width: 100%;
-                    margin-left: 0;
-                    padding-right: 0;
-                    padding-bottom: 4px;
+                    display: contents;
+                }
+
+                .header-actions .header-link {
+                    display: none;
+                }
+
+                .logout-link {
+                    position: absolute;
+                    right: 68px;
+                    top: 16px;
+                    width: 40px;
+                    min-width: 40px;
+                    min-height: 40px;
+                }
+
+                .logout-link svg {
+                    width: 20px;
+                    height: 20px;
                 }
 
                 .user-badge {
-                    right: 16px;
+                    right: 12px;
+                    top: 13px;
+                    bottom: auto;
+                    width: 46px;
+                    height: 46px;
+                    border-width: 2px;
+                    font-size: 0.95rem;
+                    box-shadow: none;
+                }
+
+                .parent-day-select {
+                    order: 3;
+                    width: 100%;
+                    grid-template-columns: auto minmax(0, 1fr);
+                }
+
+                .parent-day-select select {
+                    min-width: 0;
+                }
+
+                .parent-day-control {
+                    min-width: 0;
+                }
+
+                .parent-day-menu {
+                    right: auto;
+                    left: 0;
+                    width: 100%;
+                    transform-origin: top left;
+                }
+
+                .parent-day-status {
+                    grid-column: 1 / -1;
+                }
+
+                .mobile-nav {
+                    position: fixed;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    z-index: 975;
+                    display: flex;
+                    gap: 8px;
+                    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+                    overflow-x: auto;
+                    background: linear-gradient(180deg, var(--header-start) 0%, var(--header-end) 100%);
+                    box-shadow: 0 -6px 20px rgba(16, 50, 100, 0.2);
+                    scrollbar-width: none;
+                }
+
+                .mobile-nav::-webkit-scrollbar {
+                    display: none;
+                }
+
+                .mobile-nav-link {
+                    flex: 1 0 auto;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    min-height: 46px;
+                    padding: 0 14px;
+                    border: 2px solid var(--header-link-border);
+                    border-radius: 10px;
+                    background: var(--header-link-bg);
+                    color: var(--header-link-copy);
+                    font-size: 0.92rem;
+                    font-weight: 700;
+                    text-decoration: none;
+                    white-space: nowrap;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+                }
+
+                .mobile-nav-link:hover,
+                .mobile-nav-link:focus-visible,
+                .mobile-nav-link.is-active {
+                    border-color: var(--accent);
+                    background: var(--header-link-active-bg);
+                    color: var(--header-link-copy);
+                    outline: none;
+                }
+
+                .mobile-nav-link .header-link-badge {
+                    min-width: 22px;
+                    min-height: 22px;
                 }
 
                 .page-content {
-                    margin-top: 30px;
+                    margin-top: 16px;
+                    padding-bottom: calc(82px + env(safe-area-inset-bottom));
+                }
+
+                .hero-actions {
+                    flex-direction: column;
+                    align-items: stretch;
+                    width: 100%;
+                }
+
+                .hero-actions .button,
+                .hero-actions .ghost-button {
+                    width: 100%;
+                    min-height: 46px;
+                }
+
+                .panel-header {
+                    flex-wrap: wrap;
+                    gap: 12px;
+                }
+
+                .panel-header > .ghost-button,
+                .panel-header > .button {
+                    width: 100%;
+                    min-height: 44px;
+                    justify-content: center;
                 }
 
                 .panel,
@@ -1746,6 +2018,42 @@
 
                 .class-create-row {
                     flex-wrap: wrap;
+                }
+
+                .hide-mobile {
+                    display: none !important;
+                }
+
+                .actions-on-hover {
+                    opacity: 1;
+                    transform: none;
+                    pointer-events: auto;
+                }
+
+                .list-row-actions {
+                    width: 100%;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                }
+
+                .list-row-actions .button,
+                .list-row-actions .ghost-button,
+                .list-row-actions .danger-button {
+                    flex: 1 1 auto;
+                    min-width: 0;
+                    justify-content: center;
+                }
+
+                .field-inline-row {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .field-inline-row input,
+                .field-inline-row select,
+                .field-inline-row .button,
+                .field-inline-row .ghost-button {
+                    width: 100%;
                 }
 
                 .class-create-row .button,
@@ -1767,13 +2075,6 @@
                     flex: 1 1 150px;
                 }
 
-                .parent-day-select {
-                    grid-template-columns: 1fr;
-                }
-
-                .parent-day-status {
-                    grid-column: 1;
-                }
             }
         </style>
     </head>
@@ -1798,19 +2099,56 @@
                                     <rect x="3" y="5" width="18" height="16" rx="2"></rect>
                                     <path d="M16 3v4M8 3v4M3 10h18"></path>
                                 </svg>
-                                Sprechtag
+                                Datum
                             </span>
-                            <select id="parent_day_id" name="parent_day_id" aria-label="Elternsprechtag auswählen" data-parent-day-select onchange="this.form.submit()">
-                                <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option
-                                        value="<?php echo e($day->id); ?>"
-                                        <?php if($activeParentDay && $activeParentDay->id === $day->id): ?> selected <?php endif; ?>
-                                    >
-                                        <?php echo e($day->date->format('d/m/Y')); ?>
+                            <div class="parent-day-control" data-parent-day-control>
+                                <select id="parent_day_id" name="parent_day_id" aria-label="Elternsprechtag auswählen" data-parent-day-select>
+                                    <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option
+                                            value="<?php echo e($day->id); ?>"
+                                            <?php if($activeParentDay && $activeParentDay->id === $day->id): ?> selected <?php endif; ?>
+                                        >
+                                            <?php echo e($day->date->format('d/m/Y')); ?>
 
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </select>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                                <button
+                                    type="button"
+                                    class="parent-day-trigger"
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                    aria-controls="parent-day-menu"
+                                    data-parent-day-trigger
+                                    data-no-default-icon
+                                >
+                                    <?php echo e($activeParentDay?->date?->format('d/m/Y') ?? $parentDays->first()?->date?->format('d/m/Y')); ?>
+
+                                </button>
+                                <div
+                                    class="parent-day-menu"
+                                    id="parent-day-menu"
+                                    role="listbox"
+                                    aria-label="Datum auswählen"
+                                    data-parent-day-menu
+                                    hidden
+                                >
+                                    <?php $__currentLoopData = $parentDays; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php($isSelectedDay = $activeParentDay && $activeParentDay->id === $day->id)
+                                        <button
+                                            type="button"
+                                            class="parent-day-option {{ $isSelectedDay ? 'is-selected' : '' }}"
+                                            role="option"
+                                            aria-selected="{{ $isSelectedDay ? 'true' : 'false' }}"
+                                            data-parent-day-option
+                                            data-value="{{ $day->id }}"
+                                            data-no-default-icon
+                                        >
+                                            {{ $day->date->format('d/m/Y') }}
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
                             <div class="parent-day-status" aria-live="polite">
                                 <span class="parent-day-spinner" aria-hidden="true"></span>
                                 <span class="parent-day-check" aria-hidden="true">✓</span>
@@ -1818,25 +2156,33 @@
                                 <span class="parent-day-status-text-done">Fertig geladen</span>
                             </div>
                         </form>
-                    <?php endif; ?>
-                    <?php $__currentLoopData = ($navLinks ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <?php
+                    @endif
+                    @foreach(($navLinks ?? []) as $link)
+                        @php
+                            $isDisabled = (bool) ($link['disabled'] ?? false);
                             $href = $link['href'] ?? route($link['route'], $link['params'] ?? []);
                             $activePattern = $link['active'] ?? ($link['route'] ?? null);
-                            $isActive = isset($link['active_exact'])
+                            $isActive = ! $isDisabled && (isset($link['active_exact'])
                                 ? request()->routeIs($link['active_exact'])
-                                : ($activePattern ? request()->routeIs($activePattern) : false);
+                                : ($activePattern ? request()->routeIs($activePattern) : false));
                         ?>
-                        <a
-                            href="<?php echo e($href); ?>"
-                            class="header-link <?php echo e($isActive ? 'is-active' : ''); ?>"
-                        >
-                            <?php echo e($link['label']); ?>
+                        <?php if($isDisabled): ?>
+                            <span class="header-link is-disabled" aria-disabled="true">
+                                <?php echo e($link['label']); ?>
 
-                            <?php if(! empty($link['badge'])): ?>
-                                <span class="header-link-badge"><?php echo e($link['badge']); ?></span>
-                            <?php endif; ?>
-                        </a>
+                            </span>
+                        <?php else: ?>
+                            <a
+                                href="<?php echo e($href); ?>"
+                                class="header-link <?php echo e($isActive ? 'is-active' : ''); ?>"
+                            >
+                                <?php echo e($link['label']); ?>
+
+                                <?php if(! empty($link['badge'])): ?>
+                                    <span class="header-link-badge"><?php echo e($link['badge']); ?></span>
+                                <?php endif; ?>
+                            </a>
+                        <?php endif; ?>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                     <a class="logout-link" href="<?php echo e(route('logout')); ?>" aria-label="Abmelden">
@@ -1851,6 +2197,39 @@
                 <div class="user-badge"><?php echo e($initials ?: 'JW'); ?></div>
             </div>
         </header>
+
+        <?php if(!empty($navLinks ?? [])): ?>
+            <nav class="mobile-nav" aria-label="Mobile Navigation">
+                <?php $__currentLoopData = ($navLinks ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
+                        $mobileDisabled = (bool) ($link['disabled'] ?? false);
+                        $mobileHref = $link['href'] ?? route($link['route'], $link['params'] ?? []);
+                        $mobilePattern = $link['active'] ?? ($link['route'] ?? null);
+                        $mobileActive = ! $mobileDisabled && (isset($link['active_exact'])
+                            ? request()->routeIs($link['active_exact'])
+                            : ($mobilePattern ? request()->routeIs($mobilePattern) : false));
+                    ?>
+                    <?php if($mobileDisabled): ?>
+                        <span class="mobile-nav-link is-disabled" aria-disabled="true">
+                            <?php echo e($link['label']); ?>
+
+                        </span>
+                    <?php else: ?>
+                        <a
+                            href="<?php echo e($mobileHref); ?>"
+                            class="mobile-nav-link <?php echo e($mobileActive ? 'is-active' : ''); ?>"
+                            <?php if($mobileActive): ?> aria-current="page" <?php endif; ?>
+                        >
+                            <?php echo e($link['label']); ?>
+
+                            <?php if(! empty($link['badge'])): ?>
+                                <span class="header-link-badge"><?php echo e($link['badge']); ?></span>
+                            <?php endif; ?>
+                        </a>
+                    <?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </nav>
+        <?php endif; ?>
 
         <main class="page-content">
             <?php if(session('success') || session('error')): ?>
@@ -1868,16 +2247,150 @@
             <?php echo $__env->yieldContent('content'); ?>
         </main>
 
+        <?php if(session('booking_conflict')): ?>
+            <?php ($bookingConflict = session('booking_conflict')); ?>
+            <div class="modal is-open" role="dialog" aria-modal="true" aria-labelledby="booking-conflict-title">
+                <div class="modal-overlay" aria-hidden="true"></div>
+                <div class="modal-content">
+                    <div class="panel-header" style="margin-bottom: 0;">
+                        <div>
+                            <span class="eyebrow">Terminüberschneidung</span>
+                            <h2 class="panel-title" id="booking-conflict-title">Welchen Termin möchtest du behalten?</h2>
+                        </div>
+                    </div>
+
+                    <p class="meta-copy">
+                        Du kannst während dieses Zeitraums nur bei einem Termin gleichzeitig sein.
+                    </p>
+
+                    <div class="list-stack">
+                        <?php $__currentLoopData = $bookingConflict['existing']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $existingAppointment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <article class="list-row" style="padding: 12px;">
+                                <div class="list-row-copy">
+                                    <strong>Bestehend: <?php echo e($existingAppointment['teacher_name']); ?></strong>
+                                    <span class="meta-copy">
+                                        <?php echo e($existingAppointment['date_label']); ?>,
+                                        <?php echo e($existingAppointment['time_label']); ?> Uhr,
+                                        Raum <?php echo e($existingAppointment['room']); ?>
+
+                                    </span>
+                                </div>
+                            </article>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                        <article class="list-row is-highlighted" style="padding: 12px;">
+                            <div class="list-row-copy">
+                                <strong>Neu: <?php echo e($bookingConflict['new']['teacher_name']); ?></strong>
+                                <span class="meta-copy">
+                                    <?php echo e($bookingConflict['new']['date_label']); ?>,
+                                    <?php echo e($bookingConflict['new']['time_label']); ?> Uhr,
+                                    Raum <?php echo e($bookingConflict['new']['room']); ?>
+
+                                </span>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="button-row">
+                        <form method="POST" action="<?php echo e(route('student.timeslots.book')); ?>">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="timeslot_id" value="<?php echo e($bookingConflict['timeslot_id']); ?>">
+                            <input type="hidden" name="conflict_resolution" value="keep_existing">
+                            <button type="submit" class="ghost-button">Bestehenden behalten</button>
+                        </form>
+
+                        <form method="POST" action="<?php echo e(route('student.timeslots.book')); ?>">
+                            <?php echo csrf_field(); ?>
+                            <input type="hidden" name="timeslot_id" value="<?php echo e($bookingConflict['timeslot_id']); ?>">
+                            <input type="hidden" name="conflict_resolution" value="keep_new">
+                            <button type="submit" class="button">Neuen Termin behalten</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <script>
             (() => {
                 const parentDayForm = document.querySelector('[data-parent-day-form]');
 
                 if (parentDayForm) {
                     const select = parentDayForm.querySelector('[data-parent-day-select]');
+                    const control = parentDayForm.querySelector('[data-parent-day-control]');
+                    const trigger = parentDayForm.querySelector('[data-parent-day-trigger]');
+                    const menu = parentDayForm.querySelector('[data-parent-day-menu]');
+                    const options = Array.from(parentDayForm.querySelectorAll('[data-parent-day-option]'));
+
+                    const closeParentDayMenu = (returnFocus = false) => {
+                        menu.hidden = true;
+                        control.classList.remove('is-open');
+                        trigger.setAttribute('aria-expanded', 'false');
+
+                        if (returnFocus) {
+                            trigger.focus();
+                        }
+                    };
+
+                    const openParentDayMenu = () => {
+                        menu.hidden = false;
+                        control.classList.add('is-open');
+                        trigger.setAttribute('aria-expanded', 'true');
+
+                        const selectedOption = options.find((option) => option.classList.contains('is-selected'));
+                        (selectedOption ?? options[0])?.focus();
+                    };
+
+                    trigger?.addEventListener('click', () => {
+                        if (menu.hidden) {
+                            openParentDayMenu();
+                        } else {
+                            closeParentDayMenu(true);
+                        }
+                    });
+
+                    options.forEach((option, index) => {
+                        option.addEventListener('click', () => {
+                            if (select.value === option.dataset.value) {
+                                closeParentDayMenu(true);
+                                return;
+                            }
+
+                            select.value = option.dataset.value;
+                            trigger.textContent = option.textContent.trim();
+                            parentDayForm.classList.remove('is-done');
+                            parentDayForm.classList.add('is-loading');
+                            closeParentDayMenu();
+                            parentDayForm.requestSubmit();
+                        });
+
+                        option.addEventListener('keydown', (event) => {
+                            if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                                event.preventDefault();
+                                const direction = event.key === 'ArrowDown' ? 1 : -1;
+                                options[(index + direction + options.length) % options.length].focus();
+                            }
+
+                            if (event.key === 'Home' || event.key === 'End') {
+                                event.preventDefault();
+                                options[event.key === 'Home' ? 0 : options.length - 1].focus();
+                            }
+
+                            if (event.key === 'Escape') {
+                                event.preventDefault();
+                                closeParentDayMenu(true);
+                            }
+                        });
+                    });
 
                     select?.addEventListener('change', () => {
                         parentDayForm.classList.remove('is-done');
                         parentDayForm.classList.add('is-loading');
+                    });
+
+                    document.addEventListener('click', (event) => {
+                        if (! control.contains(event.target)) {
+                            closeParentDayMenu();
+                        }
                     });
 
                     if (parentDayForm.classList.contains('is-done')) {
@@ -1886,6 +2399,13 @@
                         }, 1800);
                     }
                 }
+
+                document.querySelectorAll('.mobile-nav-link.is-active').forEach((link) => {
+                    link.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    });
+                });
 
                 document.querySelectorAll('[data-appointment-filters]').forEach((filterGroup) => {
                     const panel = filterGroup.closest('.panel');
@@ -1918,7 +2438,7 @@
                 document.querySelectorAll(
                     'button, a.button, a.ghost-button, a.danger-button, a.print-button, a.header-link'
                 ).forEach((control) => {
-                    if (!control.querySelector('svg')) {
+                    if (! control.hasAttribute('data-no-default-icon') && ! control.querySelector('svg')) {
                         control.insertAdjacentHTML('afterbegin', defaultIcon);
                     }
                 });

@@ -3,9 +3,7 @@
     'roleTitle' => 'Lehrer-Ansicht',
     'theme' => 'teacher',
     'homeRoute' => 'teacher.dashboard',
-    'navLinks' => [
-        ['label' => 'Termine', 'route' => 'teacher.dashboard', 'active' => 'teacher.dashboard'],
-    ],
+    'navLinks' => [],
 ])
 
 @section('content')
@@ -45,7 +43,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Termine</span>
+                    <h2 class="eyebrow eyebrow-heading">Termine</h2>
                 </div>
 
                 <button type="button" class="print-button" onclick="window.print()">Termine drucken</button>
@@ -59,10 +57,15 @@
             @elseif($appointments->isEmpty())
                 <p class="empty-copy">Für diesen Lehrer wurden noch keine Termine angelegt.</p>
             @else
+                @php
+                    $onlyFreeAppointments = $appointments->every(
+                        fn (array $appointment) => ! $appointment['is_reserved']
+                    );
+                @endphp
                 <div class="appointment-filter" data-appointment-filters>
                     <button type="button" class="filter-button is-active" data-appointment-filter="all">Alle</button>
-                    <button type="button" class="filter-button" data-appointment-filter="free">Frei</button>
-                    <button type="button" class="filter-button" data-appointment-filter="booked">Gebucht</button>
+                    <button type="button" class="filter-button {{ $onlyFreeAppointments ? 'is-muted' : '' }}" data-appointment-filter="free">Frei</button>
+                    <button type="button" class="filter-button {{ $onlyFreeAppointments ? 'is-muted' : '' }}" data-appointment-filter="booked">Gebucht</button>
                 </div>
 
                 <div class="appointments-list teacher-appointments-grid">

@@ -24,7 +24,7 @@
                         <rect x="3" y="5" width="18" height="16" rx="2"></rect>
                         <path d="M16 3v4M8 3v4M3 10h18"></path>
                     </svg>
-                    Sprechtage
+                    Daten
                 </button>
                 <button type="button" class="ghost-button admin-menu-button" data-admin-menu-button="teachers">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -170,8 +170,7 @@
         <section class="panel section-anchor" id="parent-day" data-admin-menu="parent-day" hidden>
             <div class="panel-header">
                 <div>
-                    <h2 class="panel-title">Datumfestlegung</h2>
-                    <p class="panel-subtitle">Lege beliebig viele Elternsprechtage an und wechsle oben in der Leiste.</p>
+                    <h2 class="panel-title">Datumerstellung</h2>
                 </div>
             </div>
 
@@ -179,7 +178,7 @@
                 @csrf
                 <div class="field field-inline">
                     <label for="parent_day">Datum des Elternsprechtags</label>
-                    <div class="field-inline-row">
+                    <div class="field-inline-row parent-day-create-row">
                         <input
                             id="parent_day"
                             type="date"
@@ -187,7 +186,7 @@
                             value="{{ old('parent_day', $parentDayValue) }}"
                             required
                         />
-                        <button type="submit" class="button">
+                        <button type="submit" class="button parent-day-create-button">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 5v14"></path>
                                 <path d="M5 12h14"></path>
@@ -623,15 +622,45 @@
                 <div>
                     <h2 class="panel-title">Excel-Import</h2>
                 </div>
-                <button type="button" class="ghost-button button-compact" data-collapsible-toggle>
-                    <svg data-collapsible-icon-open viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="m6 9 6 6 6-6"></path>
-                    </svg>
-                    <svg data-collapsible-icon-close viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
-                        <path d="m18 15-6-6-6 6"></path>
-                    </svg>
-                    <span data-collapsible-label>Aufklappen</span>
-                </button>
+                <div class="import-header-actions">
+                    <div class="overflow-menu" data-import-log-menu>
+                        <button
+                            type="button"
+                            class="ghost-button overflow-menu-trigger"
+                            aria-label="Weitere Import-Aktionen"
+                            aria-haspopup="menu"
+                            aria-expanded="false"
+                            data-import-log-menu-trigger
+                        >
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <circle cx="12" cy="5" r="1.8"></circle>
+                                <circle cx="12" cy="12" r="1.8"></circle>
+                                <circle cx="12" cy="19" r="1.8"></circle>
+                            </svg>
+                        </button>
+                        <div class="overflow-menu-popover" role="menu" data-import-log-menu-popover hidden>
+                            <button
+                                type="button"
+                                class="overflow-menu-item"
+                                role="menuitem"
+                                data-open-modal="import-log"
+                                data-no-default-icon
+                            >
+                                Import-Log anzeigen
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="ghost-button button-compact" data-collapsible-toggle>
+                        <svg data-collapsible-icon-open viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"></path>
+                        </svg>
+                        <svg data-collapsible-icon-close viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                            <path d="m18 15-6-6-6 6"></path>
+                        </svg>
+                        <span data-collapsible-label>Aufklappen</span>
+                    </button>
+                </div>
             </div>
 
             <div class="panel-body" data-collapsible-content>
@@ -800,6 +829,54 @@
         </div>
     </div>
 
+    <div class="modal" data-modal="import-log" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-content is-wide" role="dialog" aria-modal="true" aria-labelledby="import-log-title">
+            <div class="panel-header" style="margin-bottom: 0;">
+                <div>
+                    <h3 class="panel-title" id="import-log-title">Excel-Import-Log</h3>
+                </div>
+                <button type="button" class="ghost-button button-compact" data-close-modal>Schließen</button>
+            </div>
+
+            @if($excelImportLogs->isNotEmpty())
+                <div class="import-log-list">
+                    @foreach($excelImportLogs as $importLog)
+                        <article class="list-row">
+                            <div class="list-row-copy">
+                                <p class="list-row-title">{{ $importLog->filename }}</p>
+                                <div class="import-log-meta">
+                                    <time datetime="{{ $importLog->created_at->toIso8601String() }}">
+                                        {{ $importLog->created_at->format('d.m.Y, H:i') }} Uhr
+                                    </time>
+                                    @if($importLog->user)
+                                        <span>von {{ $importLog->user->name }}</span>
+                                    @endif
+                                    @if($importLog->file_size)
+                                        <span>{{ number_format($importLog->file_size / 1024, 1, ',', '.') }} KB</span>
+                                    @endif
+                                </div>
+                                @if(! empty($importLog->parent_days))
+                                    <div class="import-log-meta">
+                                        <span>Sprechtage: {{ implode(', ', $importLog->parent_days) }}</span>
+                                    </div>
+                                @endif
+                                <div class="import-log-stats">
+                                    <span>Lehrer neu: {{ $importLog->teachers_created }}</span>
+                                    <span>aktualisiert: {{ $importLog->teachers_updated }}</span>
+                                    <span>übersprungen: {{ $importLog->rows_skipped }}</span>
+                                    <span>Termine neu: {{ $importLog->timeslots_created }}</span>
+                                </div>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <p class="empty-copy">Noch keine erfolgreichen Excel-Importe protokolliert.</p>
+            @endif
+        </div>
+    </div>
+
     <script>
         (function () {
             const adminMenuButtons = Array.from(document.querySelectorAll('[data-admin-menu-button]'));
@@ -900,6 +977,42 @@
             importParentDayInput?.addEventListener('blur', () => {
                 if (importParentDayInput.value && importParentDayInput.checkValidity()) {
                     document.querySelector('#import-parent-day-create')?.requestSubmit();
+                }
+            });
+
+            const importLogMenu = document.querySelector('[data-import-log-menu]');
+            const importLogMenuTrigger = importLogMenu?.querySelector('[data-import-log-menu-trigger]');
+            const importLogMenuPopover = importLogMenu?.querySelector('[data-import-log-menu-popover]');
+
+            const closeImportLogMenu = () => {
+                if (importLogMenuPopover) {
+                    importLogMenuPopover.hidden = true;
+                    importLogMenuTrigger?.setAttribute('aria-expanded', 'false');
+                }
+            };
+
+            importLogMenuTrigger?.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const opens = importLogMenuPopover?.hidden ?? true;
+                closeImportLogMenu();
+
+                if (opens && importLogMenuPopover) {
+                    importLogMenuPopover.hidden = false;
+                    importLogMenuTrigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            importLogMenuPopover?.addEventListener('click', closeImportLogMenu);
+
+            document.addEventListener('click', (event) => {
+                if (importLogMenu && ! importLogMenu.contains(event.target)) {
+                    closeImportLogMenu();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeImportLogMenu();
                 }
             });
 

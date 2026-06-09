@@ -3,14 +3,15 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Lehrer-Detail</span>
-                    <h2 class="panel-title"><?php echo e($teacher['name']); ?> (<?php echo e($teacher['short']); ?>)</h2>
-                    <p class="panel-subtitle">
-                        Verfügbare Termine von 17:00 - 19:00 Uhr. Ein Schüler kann maximal einen Termin pro Lehrer buchen.
-                    </p>
+                    <h2 class="panel-title"><?php echo e($teacher['name']); ?></h2>
                 </div>
 
-                <a class="close-button" href="<?php echo e(route('student.teachers.index')); ?>" aria-label="Zurück">&times;</a>
+                <a class="close-button" href="<?php echo e(route('student.teachers.index')); ?>" aria-label="Zurück">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 12H5"></path>
+                        <path d="M12 19l-7-7 7-7"></path>
+                    </svg>
+                </a>
             </div>
 
             <div class="button-row" style="margin-bottom: 16px;">
@@ -31,14 +32,12 @@
                                 <input type="radio" name="timeslot_id" value="<?php echo e($slot['id']); ?>" <?php echo e($alreadyBooked ? 'disabled' : ''); ?> style="position: absolute; opacity: 0;">
                                 <?php echo e($slot['label']); ?>
 
-                                <small><?php echo e($slot['date_label']); ?></small>
                             </label>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
 
                     <div class="inline-actions" style="margin-top: 24px; justify-content: space-between;">
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            </span>
                             <?php if(!$alreadyBooked): ?>
                                 <button type="submit" class="button" id="book-button" disabled>Buchen</button>
                             <?php endif; ?>
@@ -48,23 +47,18 @@
             <?php endif; ?>
         </section>
 
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <span class="eyebrow">Navigation</span>
-                    <h2 class="panel-title">Vorherige und nächste Lehrer</h2>
+        <?php if($teachers->isNotEmpty()): ?>
+            <section class="panel teacher-navigation">
+                <div class="teacher-grid">
+                    <?php $__currentLoopData = $teachers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $listTeacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <a class="tile" href="<?php echo e(route('student.teachers.show', $listTeacher['slug'])); ?>">
+                            <span class="tile-code"><?php echo e($listTeacher['short']); ?></span>
+                            <span class="tile-title"><?php echo e($listTeacher['name']); ?></span>
+                        </a>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            </div>
-
-            <div class="teacher-grid">
-                <?php $__currentLoopData = $teachers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $listTeacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <a class="tile" href="<?php echo e(route('student.teachers.show', $listTeacher['slug'])); ?>">
-                        <span class="tile-code"><?php echo e($listTeacher['short']); ?></span>
-                        <span class="tile-title"><?php echo e($listTeacher['name']); ?></span>
-                    </a>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </div>
-        </section>
+            </section>
+        <?php endif; ?>
     </div>
 
     <?php if(!$alreadyBooked): ?>
@@ -73,11 +67,9 @@
                 radio.addEventListener('change', function() {
                     document.getElementById('book-button').disabled = false;
                     document.querySelectorAll('.slot-button').forEach(btn => {
-                        btn.style.background = 'rgba(255, 255, 255, 0.64)';
-                        btn.style.borderColor = '';
+                        btn.classList.remove('is-selected');
                     });
-                    this.closest('.slot-button').style.background = '#d7e6ff';
-                    this.closest('.slot-button').style.borderColor = '#4d79ce';
+                    this.closest('.slot-button').classList.add('is-selected');
                 });
             });
         </script>

@@ -326,15 +326,9 @@
             <a class="logo-link" href="<?php echo e(route('login')); ?>">
                 <img src="<?php echo e(asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png')); ?>" alt="HTL Waidhofen" class="logo-image">
             </a>
-
             <div class="header-copy">
-                <span class="eyebrow">Entwicklung</span>
                 <h1>Dev-Login</h1>
-                <p class="hero-copy">
-                    Teste Schüler-, Lehrer- und Admin-Flows direkt aus der lokalen Entwicklungsumgebung.
-                </p>
             </div>
-
             <div class="initial-badge" id="student-initials">ST</div>
         </div>
     </header>
@@ -345,7 +339,6 @@
                 <div class="card-head">
                     <div class="card-icon">S</div>
                     <h2 class="card-title">Schüler-Login</h2>
-                    <p class="card-copy">Simuliert einen Schüler mit frei wählbarem Namen und Klasse.</p>
                 </div>
 
                 <div class="field-stack">
@@ -367,12 +360,11 @@
                 <div class="card-head">
                     <div class="card-icon">L</div>
                     <h2 class="card-title">Lehrer-Login</h2>
-                    <p class="card-copy">Wähle einen vorhandenen Lehrer aus und öffne direkt seine Ansicht.</p>
                 </div>
 
                 <div class="field-stack">
                     <select id="teacher-select">
-                        <option value="">Lehrer wählen...</option>
+                        <option value="">Lehrer auswählen...</option>
                         <?php $__currentLoopData = \App\Models\Teacher::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $teacher): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <option value="<?php echo e($teacher->teacher_id); ?>"><?php echo e($teacher->full_name); ?> (<?php echo e($teacher->kuerzel); ?>)</option>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -390,10 +382,9 @@
                 <div class="card-head">
                     <div class="card-icon">A</div>
                     <h2 class="card-title">Admin-Login</h2>
-                    <p class="card-copy">Öffnet direkt die Verwaltungsansicht für Dashboard, Lehrer und Termine.</p>
                 </div>
 
-                <a href="<?php echo e(route('dev.login.admin')); ?>" class="admin-link">Als Admin einloggen</a>
+                <a href="<?php echo e(route('dev.login.admin')); ?>" class="admin-link">Anmelden</a>
             </article>
         </section>
 

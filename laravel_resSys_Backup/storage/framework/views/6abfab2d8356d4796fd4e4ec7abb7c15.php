@@ -11,10 +11,17 @@
         <style>
             :root {
                 color-scheme: light;
-                --blue: #1558a6;
-                --blue-dark: #0e376d;
-                --ink: #102d55;
-                --muted: #61738c;
+                --header-start: #1d5cb5;
+                --header-end: #15498f;
+                --page-bg: #f7fbff;
+                --panel-bg: #e7efff;
+                --panel-strong: #d7e6ff;
+                --panel-stroke: #4d79ce;
+                --ink: #122a52;
+                --muted: #31548a;
+                --heading: #173f7b;
+                --accent: #95c11f;
+                --shadow: 0 14px 28px rgba(16, 50, 100, 0.14);
             }
 
             * {
@@ -27,118 +34,147 @@
                 display: grid;
                 place-items: center;
                 padding: 24px;
-                overflow-x: hidden;
                 color: var(--ink);
                 font-family: 'Instrument Sans', sans-serif;
                 background:
-                    radial-gradient(circle at 12% 12%, rgba(149, 193, 31, 0.2), transparent 27%),
-                    radial-gradient(circle at 88% 82%, rgba(21, 88, 166, 0.2), transparent 30%),
-                    linear-gradient(145deg, #fdfefe 0%, #edf4fc 52%, #f6f9ee 100%);
-            }
-
-            body::before,
-            body::after {
-                content: '';
-                position: fixed;
-                width: 320px;
-                height: 320px;
-                border: 1px solid rgba(21, 88, 166, 0.12);
-                border-radius: 50%;
-                pointer-events: none;
-            }
-
-            body::before {
-                left: -150px;
-                bottom: -120px;
-            }
-
-            body::after {
-                right: -170px;
-                top: -130px;
+                    radial-gradient(circle at top, rgba(77, 121, 206, 0.18), transparent 36%),
+                    linear-gradient(180deg, #fbfdff 0%, var(--page-bg) 100%);
             }
 
             .login-shell {
-                width: min(100%, 760px);
-                position: relative;
+                width: min(100%, 720px);
                 display: grid;
                 justify-items: center;
-                gap: 28px;
-                padding: clamp(34px, 7vw, 70px);
-                border: 1px solid rgba(255, 255, 255, 0.82);
-                border-radius: 30px;
-                background: rgba(255, 255, 255, 0.72);
-                box-shadow: 0 30px 80px rgba(16, 45, 85, 0.16);
-                backdrop-filter: blur(18px);
+                gap: 22px;
+                padding: clamp(28px, 6vw, 52px);
+                border: 3px solid var(--panel-stroke);
+                border-radius: 12px;
+                background: var(--panel-bg);
+                box-shadow: var(--shadow);
                 text-align: center;
+            }
+
+            .school-logo {
+                height: 58px;
+                max-width: 100%;
+                padding: 6px;
+                border: 1px solid rgba(23, 63, 123, 0.14);
+                border-radius: 6px;
+                background: white;
+            }
+
+            .eyebrow {
+                display: inline-flex;
+                align-items: center;
+                min-height: 28px;
+                margin: 0;
+                padding: 3px 10px;
+                border: 1px solid color-mix(in srgb, var(--panel-stroke) 60%, white);
+                border-radius: 999px;
+                background: var(--panel-strong);
+                color: var(--muted);
+                font-size: 0.78rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
             }
 
             .welcome {
                 margin: 0;
-                max-width: 650px;
-                color: var(--blue-dark);
+                max-width: 620px;
+                color: var(--heading);
                 font-family: 'Cormorant Garamond', Georgia, serif;
-                font-size: clamp(1.8rem, 4.5vw, 3.2rem);
-                font-weight: 600;
-                line-height: 1.05;
-                letter-spacing: -0.02em;
+                font-size: clamp(1.8rem, 4.2vw, 2.9rem);
+                font-weight: 700;
+                line-height: 1.08;
+                letter-spacing: -0.015em;
             }
 
             .brand {
-                margin: -8px 0 0;
-                color: var(--blue);
+                margin: -4px 0 0;
+                color: var(--header-start);
                 font-family: 'Cormorant Garamond', Georgia, serif;
-                font-size: clamp(4.4rem, 13vw, 8rem);
+                font-size: clamp(4rem, 12vw, 7rem);
                 font-weight: 700;
                 font-style: italic;
-                line-height: 0.85;
+                line-height: 0.88;
                 letter-spacing: -0.055em;
             }
 
             .brand::after {
                 content: '';
                 display: block;
-                width: 74%;
-                height: 5px;
-                margin: 16px auto 0;
+                width: 68%;
+                height: 4px;
+                margin: 14px auto 0;
                 border-radius: 999px;
-                background: linear-gradient(90deg, #95c11f, #1558a6);
+                background: linear-gradient(90deg, var(--accent), var(--header-start));
+            }
+
+            .login-area {
+                width: min(100%, 410px);
+                display: grid;
+                gap: 10px;
+                padding: 16px;
+                border: 2px solid color-mix(in srgb, var(--panel-stroke) 64%, white);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.48);
             }
 
             .login-button {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                gap: 14px;
-                width: min(100%, 340px);
-                min-height: 58px;
-                padding: 0 24px;
-                border: 2px solid #0f4f96;
-                border-radius: 12px;
-                background: linear-gradient(180deg, #1765bd, #124f96);
+                gap: 12px;
+                width: 100%;
+                min-height: 50px;
+                padding: 0 16px;
+                border: 2px solid var(--header-end);
+                border-radius: 8px;
+                background: linear-gradient(180deg, var(--header-start), var(--header-end));
                 color: white;
                 text-decoration: none;
-                font-size: 1.02rem;
-                font-weight: 700;
-                box-shadow: 0 14px 28px rgba(21, 88, 166, 0.22);
-                transition: transform 0.18s ease, box-shadow 0.18s ease;
+                font-size: 0.98rem;
+                font-weight: 800;
+                box-shadow: 0 8px 16px rgba(21, 73, 143, 0.2);
+                transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
             }
 
-            .login-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 18px 34px rgba(21, 88, 166, 0.28);
+            .login-button:hover,
+            .login-button:focus-visible {
+                transform: translateY(-1px);
+                box-shadow: 0 11px 20px rgba(21, 73, 143, 0.26);
+                filter: saturate(1.08);
+                outline: none;
+            }
+
+            .login-button .arrow {
+                width: 18px;
+                height: 18px;
+                margin-left: auto;
             }
 
             .microsoft-logo {
-                width: 24px;
-                height: 24px;
-                flex: 0 0 24px;
+                width: 22px;
+                height: 22px;
+                flex: 0 0 22px;
+                padding: 2px;
+                border-radius: 3px;
+                background: white;
+            }
+
+            .login-hint {
+                margin: 0;
+                color: var(--muted);
+                font-size: 0.82rem;
+                line-height: 1.45;
             }
 
             .error {
                 width: min(100%, 520px);
                 padding: 12px 14px;
-                border: 2px solid #df6d63;
-                border-radius: 10px;
+                border: 2px solid #ff6b60;
+                border-radius: 8px;
                 background: #fff0ee;
                 color: #8a241c;
                 font-weight: 700;
@@ -146,14 +182,21 @@
 
             @media (max-width: 520px) {
                 .login-shell {
-                    padding: 38px 22px;
-                    border-radius: 22px;
+                    padding: 28px 18px;
                 }
             }
         </style>
     </head>
     <body>
         <main class="login-shell">
+            <img
+                src="<?php echo e(asset('images/Logo_HTLWaidhofen_std_fbg_rgb_web.png')); ?>"
+                alt="HTL Waidhofen"
+                class="school-logo"
+            >
+
+            <p class="eyebrow">Elternsprechtag digital</p>
+
             <h1 class="welcome">
                 Willkommen auf der Plattform für Elternsprechtags-<br>
                 Terminreservierung
@@ -161,15 +204,22 @@
 
             <p class="brand">PRESS.</p>
 
-            <a href="<?php echo e(url('/auth/azure')); ?>" class="login-button">
-                <svg class="microsoft-logo" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fill="#f25022" d="M1 1h10v10H1z"/>
-                    <path fill="#7fba00" d="M13 1h10v10H13z"/>
-                    <path fill="#00a4ef" d="M1 13h10v10H1z"/>
-                    <path fill="#ffb900" d="M13 13h10v10H13z"/>
-                </svg>
-                Mit Azure anmelden
-            </a>
+            <div class="login-area">
+                <a href="<?php echo e(route('auth.azure')); ?>" class="login-button">
+                    <svg class="microsoft-logo" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#f25022" d="M1 1h10v10H1z"/>
+                        <path fill="#7fba00" d="M13 1h10v10H13z"/>
+                        <path fill="#00a4ef" d="M1 13h10v10H1z"/>
+                        <path fill="#ffb900" d="M13 13h10v10H13z"/>
+                    </svg>
+                    <span>Mit Azure anmelden</span>
+                    <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14"></path>
+                        <path d="m13 6 6 6-6 6"></path>
+                    </svg>
+                </a>
+                <p class="login-hint">Anmeldung mit dem Microsoft-Schulkonto.</p>
+            </div>
 
             <?php if(session('error')): ?>
                 <div class="error"><?php echo e(session('error')); ?></div>

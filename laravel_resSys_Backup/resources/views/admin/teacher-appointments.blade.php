@@ -16,7 +16,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Lehrertermine</span>
+                    <h2 class="eyebrow eyebrow-heading">Lehrertermine</h2>
                     <div class="button-row" style="margin-top: 12px;">
                         <span class="badge">{{ $teacher['display_classes'] }}</span>
                         <span class="badge">{{ $teacher['timeslot_duration_label'] }}</span>

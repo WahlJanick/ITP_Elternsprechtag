@@ -5,13 +5,6 @@
                 <div>
                     <span class="eyebrow">Buchung</span>
                     <h2 class="panel-title">Lehrer, die dich unterrichten</h2>
-                    <p class="panel-subtitle">
-                        <?php if($currentClass): ?>
-                            Klasse <?php echo e($currentClass); ?>. Lehrer ohne freie Slots bleiben sichtbar.
-                        <?php else: ?>
-                            Wähle einen Lehrer aus.
-                        <?php endif; ?>
-                    </p>
                 </div>
                 <a class="button" href="<?php echo e(route('student.bookings')); ?>">Meine Termine</a>
             </div>

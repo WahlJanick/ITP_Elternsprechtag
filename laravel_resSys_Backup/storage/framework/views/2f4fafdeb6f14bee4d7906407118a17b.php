@@ -3,11 +3,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Meine Termine</span>
-                    <h2 class="panel-title">Gebuchte Termine</h2>
-                    <p class="panel-subtitle">
-                        Hier sieht der Schüler Lehrer, Raum und Uhrzeit und kann Termine wieder stornieren.
-                    </p>
+                    <h2 class="eyebrow eyebrow-heading">Meine Termine</h2>
                 </div>
 
                 <button type="button" class="print-button" onclick="window.print()">Termine drucken</button>

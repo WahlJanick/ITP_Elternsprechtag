@@ -4,8 +4,8 @@
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
-        ['label' => 'Start', 'route' => 'student.booking', 'active' => 'student.booking'],
-        ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings'],
+        ['label' => 'Übersicht', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings', 'disabled' => ! $hasBookings],
     ],
 ])
 
@@ -14,9 +14,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Lehrer-Detail</span>
-                    <h2 class="panel-title">{{ $teacher['name'] }} ({{ $teacher['short'] }})</h2>
-                    <p class="panel-subtitle">{{ $bookingNotice }}</p>
+                    <h2 class="panel-title">{{ $teacher['name'] }}</h2>
                 </div>
 
                 <a class="close-button" href="{{ route('student.teachers.index') }}" aria-label="Zurück">
@@ -44,7 +42,6 @@
                             <label class="slot-button" style="cursor: {{ $alreadyBooked ? 'not-allowed' : 'pointer' }}; opacity: {{ $alreadyBooked ? '0.6' : '1' }};">
                                 <input type="radio" name="timeslot_id" value="{{ $slot['id'] }}" {{ $alreadyBooked ? 'disabled' : '' }} style="position: absolute; opacity: 0;">
                                 {{ $slot['label'] }}
-                                <small>{{ $slot['date_label'] }}</small>
                             </label>
                         @endforeach
                     </div>

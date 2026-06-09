@@ -165,7 +165,6 @@
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Datumfestlegung</h2>
-                    <p class="panel-subtitle">Lege beliebig viele Elternsprechtage an und wechsle oben in der Leiste.</p>
                 </div>
             </div>
 

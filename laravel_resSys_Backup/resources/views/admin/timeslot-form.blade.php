@@ -7,7 +7,7 @@
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard'],
         ['label' => 'Lehrer', 'href' => route('admin.dashboard').'#teachers'],
         ['label' => 'Bearbeiten', 'route' => 'admin.teachers.show', 'params' => [$teacherSlug], 'active_exact' => 'admin.teachers.show'],
-        ['label' => 'Terminuebersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacherSlug], 'active_exact' => 'admin.teachers.appointments'],
+        ['label' => 'Terminübersicht', 'route' => 'admin.teachers.appointments', 'params' => [$teacherSlug], 'active_exact' => 'admin.teachers.appointments'],
     ],
 ])
 
@@ -31,7 +31,6 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">{{ $isEditing ? 'Bearbeiten' : 'Generierung' }}</span>
                     <h2 class="panel-title">
                         @if($isEditing)
                             Termin bearbeiten
@@ -42,11 +41,10 @@
                             Termine generieren
                         @endif
                     </h2>
-                    <p class="panel-subtitle">Aktiver Elternsprechtag: {{ $parentDayLabel ?? '--/--/----' }}</p>
                 </div>
 
                 <div class="button-row">
-                    <a href="{{ route('admin.teachers.appointments', $teacherSlug) }}" class="ghost-button">Terminuebersicht</a>
+                    <a href="{{ route('admin.teachers.appointments', $teacherSlug) }}" class="ghost-button">Terminübersicht</a>
                     <a href="{{ route('admin.teachers.show', $teacherSlug) }}" class="ghost-button">Lehrer bearbeiten</a>
                 </div>
             </div>
@@ -63,7 +61,7 @@
 
                 <div class="teacher-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                     <div class="field">
-                        <label for="teacher_id">Lehrer *</label>
+                        <label for="teacher_id">Lehrer</label>
                         <select id="teacher_id" name="teacher_id" required {{ $disabledAttr }}>
                             @foreach($teachers as $teacherOption)
                                 <option value="{{ $teacherOption->teacher_id }}" {{ (string) $teacherValue === (string) $teacherOption->teacher_id ? 'selected' : '' }}>
@@ -88,12 +86,7 @@
                     @endif
 
                     <div class="field">
-                        <label for="parent_day">Datum</label>
-                        <input type="text" id="parent_day" value="{{ $parentDayLabel ?? '--/--/----' }}" readonly />
-                    </div>
-
-                    <div class="field">
-                        <label for="starts_at">Beginn *</label>
+                        <label for="starts_at">Beginn</label>
                         <input
                             type="text"
                             id="starts_at"
@@ -109,7 +102,7 @@
                     </div>
 
                     <div class="field">
-                        <label for="ends_at">Ende *</label>
+                        <label for="ends_at">Ende</label>
                         <input
                             type="text"
                             id="ends_at"
@@ -126,7 +119,7 @@
 
                     @if(! $isEditing)
                         <div class="field">
-                            <label for="slot_length_minutes">Terminlänge *</label>
+                            <label for="slot_length_minutes">Terminlänge</label>
                             <input
                                 type="number"
                                 id="slot_length_minutes"
@@ -141,7 +134,7 @@
                     @endif
 
                     <div class="field">
-                        <label for="room">Raum *</label>
+                        <label for="room">Raum</label>
                         <input
                             type="text"
                             id="room"
@@ -178,7 +171,7 @@
                         <span class="badge">Nur Ansicht</span>
                     @endif
 
-                    <a href="{{ route('admin.teachers.appointments', $teacherSlug) }}" class="ghost-button">Zurueck</a>
+                    <a href="{{ route('admin.teachers.appointments', $teacherSlug) }}" class="ghost-button">Zurück</a>
                 </div>
             </form>
         </section>

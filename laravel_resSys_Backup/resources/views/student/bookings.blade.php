@@ -4,7 +4,7 @@
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
-        ['label' => 'Start', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Übersicht', 'route' => 'student.booking', 'active' => 'student.booking'],
         ['label' => 'Buchen', 'route' => 'student.teachers.index', 'active' => 'student.teachers.*'],
     ],
 ])
@@ -14,7 +14,7 @@
         <section class="panel">
             <div class="panel-header">
                 <div>
-                    <span class="eyebrow">Meine Termine</span>
+                    <h2 class="eyebrow eyebrow-heading">Meine Termine</h2>
                 </div>
 
                 <button type="button" class="print-button" onclick="window.print()">Termine drucken</button>
