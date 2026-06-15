@@ -1832,13 +1832,8 @@
                 grid-template-columns: 1fr;
                 align-content: start;
                 gap: 8px;
-                min-height: 150px;
+                min-height: 174px;
                 padding: 12px;
-                border-color: #d9c36a;
-                background: #fff1a8;
-            }
-
-            .teacher-appointment-row[data-appointment-status="free"] {
                 border-color: color-mix(in srgb, var(--panel-stroke) 55%, white);
                 background: #ffffff;
                 box-shadow: 0 7px 16px color-mix(in srgb, var(--panel-stroke) 14%, transparent);
@@ -1852,37 +1847,51 @@
                 font-size: 1.05rem;
             }
 
-            .teacher-appointment-row .status-chip {
+            .teacher-appointment-status {
                 width: 100%;
-                min-height: 28px;
-            }
-
-            .teacher-appointment-row .status-chip.is-booked {
-                border-color: #c99c22;
-                background: #f2c94c;
-                color: #5f4500;
-            }
-
-            .teacher-appointment-row .appointment-main {
-                gap: 2px;
-                padding-top: 2px;
+                min-height: 104px;
+                display: grid;
+                place-content: center;
+                gap: 3px;
+                padding: 10px;
+                border: 2px solid;
+                border-radius: 10px;
                 text-align: center;
             }
 
-            .teacher-appointment-row .appointment-title,
-            .teacher-appointment-row .appointment-meta {
+            .teacher-appointment-status.is-booked {
+                border-color: #d5ab2f;
+                background: #ffe69a;
+                color: #624900;
+            }
+
+            .teacher-appointment-status.is-free {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-color: #a8ce3d;
+                background: #edf8d0;
+                color: #36510d;
+            }
+
+            .teacher-appointment-status p {
+                margin: 0;
                 font-size: 0.88rem;
                 line-height: 1.25;
                 overflow-wrap: anywhere;
             }
 
-            .teacher-appointment-row .appointment-meta {
+            .teacher-appointment-status-label {
+                font-weight: 800;
+            }
+
+            .teacher-appointment-booker,
+            .teacher-appointment-class {
                 font-weight: 700;
             }
 
-            .appointment-empty-copy {
-                visibility: hidden;
-                user-select: none;
+            .teacher-appointment-class {
+                opacity: 0.82;
             }
 
             .admin-menu-launcher {
@@ -2407,6 +2416,34 @@
         @endif
 
         <script>
+            (() => {
+                let titleBeforePrint = null;
+
+                const clearPrintTitle = () => {
+                    if (titleBeforePrint === null) {
+                        titleBeforePrint = document.title;
+                    }
+
+                    document.title = '';
+                };
+
+                const restorePrintTitle = () => {
+                    if (titleBeforePrint !== null) {
+                        document.title = titleBeforePrint;
+                        titleBeforePrint = null;
+                    }
+                };
+
+                window.printPortalView = () => {
+                    clearPrintTitle();
+                    window.print();
+                    window.setTimeout(restorePrintTitle, 1000);
+                };
+
+                window.addEventListener('beforeprint', clearPrintTitle);
+                window.addEventListener('afterprint', restorePrintTitle);
+            })();
+
             (() => {
                 const parentDayForm = document.querySelector('[data-parent-day-form]');
 

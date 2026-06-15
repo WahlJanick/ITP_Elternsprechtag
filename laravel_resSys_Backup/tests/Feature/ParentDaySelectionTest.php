@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PortalController;
 use App\Models\ParentDay;
 use App\Models\Teacher;
 use App\Models\TeacherParentDaySetting;
@@ -24,6 +25,7 @@ beforeEach(function () {
         $table->boolean('is_teacher')->default(false);
         $table->boolean('is_admin')->default(false);
         $table->integer('teacher_id')->nullable();
+        $table->string('klasse')->nullable();
         $table->timestamps();
     });
 
@@ -100,7 +102,70 @@ test('a student stays on the current page after switching parent days', function
     expect(session('parent_day_id'))->toBe($parentDay->id);
 });
 
-test('a teacher can select only assigned parent days', function () {
+test('a student sees only parent days with a bookable or already booked appointment', function () {
+    $user = User::factory()->create([
+        'klasse' => '3AHIT',
+        'is_teacher' => false,
+        'is_admin' => false,
+    ]);
+
+    $matchingTeacher = Teacher::create([
+        'teacher_id' => 1,
+        'first_name' => 'Passende',
+        'last_name' => 'Lehrerin',
+        'classes' => ['3AHIT'],
+    ]);
+    $otherTeacher = Teacher::create([
+        'teacher_id' => 2,
+        'first_name' => 'Andere',
+        'last_name' => 'Lehrerin',
+        'classes' => ['4BHIT'],
+    ]);
+
+    $bookableDay = ParentDay::create(['date' => now()->addWeek()->toDateString()]);
+    $bookedDay = ParentDay::create(['date' => now()->addWeeks(2)->toDateString()]);
+    $unavailableDay = ParentDay::create(['date' => now()->addWeeks(3)->toDateString()]);
+
+    Timeslot::create([
+        'id' => 1,
+        'teacher_id' => $matchingTeacher->teacher_id,
+        'parent_day_id' => $bookableDay->id,
+        'starts_at' => $bookableDay->date->copy()->setTime(17, 0),
+        'ends_at' => $bookableDay->date->copy()->setTime(17, 10),
+        'room' => 'A101',
+        'is_reserved' => false,
+    ]);
+    Timeslot::create([
+        'id' => 2,
+        'teacher_id' => $otherTeacher->teacher_id,
+        'parent_day_id' => $bookedDay->id,
+        'student_id' => $user->id,
+        'starts_at' => $bookedDay->date->copy()->setTime(17, 0),
+        'ends_at' => $bookedDay->date->copy()->setTime(17, 10),
+        'room' => 'B201',
+        'is_reserved' => true,
+    ]);
+    Timeslot::create([
+        'id' => 3,
+        'teacher_id' => $otherTeacher->teacher_id,
+        'parent_day_id' => $unavailableDay->id,
+        'starts_at' => $unavailableDay->date->copy()->setTime(17, 0),
+        'ends_at' => $unavailableDay->date->copy()->setTime(17, 10),
+        'room' => 'C301',
+        'is_reserved' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    $controller = app(PortalController::class);
+    $method = new ReflectionMethod($controller, 'availableParentDaysForCurrentUser');
+    $parentDays = $method->invoke($controller);
+
+    expect($parentDays->pluck('id')->all())
+        ->toBe([$bookableDay->id, $bookedDay->id]);
+});
+
+test('a teacher can select only parent days with actual timeslots', function () {
     $teacher = Teacher::create([
         'teacher_id' => 1,
         'first_name' => 'Max',
@@ -121,9 +186,19 @@ test('a teacher can select only assigned parent days', function () {
         'date' => now()->addWeeks(2)->toDateString(),
     ]);
 
-    TeacherParentDaySetting::create([
+    Timeslot::create([
+        'id' => 1,
         'teacher_id' => $teacher->teacher_id,
         'parent_day_id' => $assignedParentDay->id,
+        'starts_at' => $assignedParentDay->date->copy()->setTime(17, 0),
+        'ends_at' => $assignedParentDay->date->copy()->setTime(17, 10),
+        'room' => 'A101',
+        'is_reserved' => false,
+    ]);
+
+    TeacherParentDaySetting::create([
+        'teacher_id' => $teacher->teacher_id,
+        'parent_day_id' => $otherParentDay->id,
         'timeslot_duration' => 10,
     ]);
 
@@ -201,4 +276,112 @@ test('an admin updates a teacher room only for the selected parent day', functio
                 ->where('parent_day_id', $selectedParentDay->id)
                 ->value('room')
         )->toBe('B201');
+});
+
+test('teacher profiles are limited to the selected parent day', function () {
+    $admin = User::factory()->create([
+        'is_teacher' => false,
+        'is_admin' => true,
+    ]);
+
+    $selectedTeacher = Teacher::create([
+        'teacher_id' => 1,
+        'first_name' => 'Aktive',
+        'last_name' => 'Lehrerin',
+        'classes' => [],
+    ]);
+    $otherTeacher = Teacher::create([
+        'teacher_id' => 2,
+        'first_name' => 'Frühere',
+        'last_name' => 'Lehrerin',
+        'classes' => [],
+    ]);
+
+    $selectedParentDay = ParentDay::create([
+        'date' => now()->addWeek()->toDateString(),
+    ]);
+    $otherParentDay = ParentDay::create([
+        'date' => now()->addWeeks(2)->toDateString(),
+    ]);
+
+    TeacherParentDaySetting::create([
+        'teacher_id' => $selectedTeacher->teacher_id,
+        'parent_day_id' => $selectedParentDay->id,
+        'timeslot_duration' => 10,
+    ]);
+    TeacherParentDaySetting::create([
+        'teacher_id' => $otherTeacher->teacher_id,
+        'parent_day_id' => $otherParentDay->id,
+        'timeslot_duration' => 10,
+    ]);
+
+    $this->actingAs($admin)->withSession([
+        'parent_day_id' => $selectedParentDay->id,
+    ]);
+
+    $controller = app(PortalController::class);
+    $method = new ReflectionMethod($controller, 'allTeacherProfiles');
+    $profiles = $method->invoke($controller);
+
+    expect($profiles->pluck('reference_id')->all())
+        ->toBe([$selectedTeacher->teacher_id]);
+});
+
+test('manually adding an existing teacher assigns them to the selected parent day', function () {
+    $admin = User::factory()->create([
+        'is_teacher' => false,
+        'is_admin' => true,
+    ]);
+
+    $teacher = Teacher::create([
+        'teacher_id' => 1,
+        'first_name' => 'Max',
+        'last_name' => 'Muster',
+        'classes' => [],
+    ]);
+    User::factory()->create([
+        'name' => 'Max Muster',
+        'email' => 'max.muster@example.com',
+        'is_teacher' => true,
+        'is_admin' => false,
+        'teacher_id' => $teacher->teacher_id,
+    ]);
+
+    $previousParentDay = ParentDay::create([
+        'date' => now()->addWeek()->toDateString(),
+    ]);
+    $newParentDay = ParentDay::create([
+        'date' => now()->addWeeks(2)->toDateString(),
+    ]);
+
+    TeacherParentDaySetting::create([
+        'teacher_id' => $teacher->teacher_id,
+        'parent_day_id' => $previousParentDay->id,
+        'timeslot_duration' => 10,
+    ]);
+
+    $this->actingAs($admin)
+        ->withSession(['parent_day_id' => $newParentDay->id])
+        ->post(route('admin.teachers.accounts.store'), [
+            'teacher_emails' => 'Max Muster <max.muster@example.com>',
+            'timeslot_duration' => 10,
+            'timeslot_start' => '17:00',
+            'timeslot_end' => '17:20',
+            'timeslot_room' => 'B201',
+            'classes' => [],
+        ])
+        ->assertRedirect(route('admin.dashboard'));
+
+    expect(
+        TeacherParentDaySetting::query()
+            ->where('teacher_id', $teacher->teacher_id)
+            ->where('parent_day_id', $newParentDay->id)
+            ->exists()
+    )->toBeTrue()
+        ->and(
+            Timeslot::query()
+                ->where('teacher_id', $teacher->teacher_id)
+                ->where('parent_day_id', $newParentDay->id)
+                ->count()
+        )->toBe(2);
 });

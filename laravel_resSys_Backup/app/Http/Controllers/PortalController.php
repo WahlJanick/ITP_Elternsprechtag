@@ -745,7 +745,6 @@ class PortalController extends Controller
             }
 
             $user->is_teacher = true;
-            $teacherWasCreated = false;
 
             if ($user->teacher_id === null) {
                 $teacherModel = Teacher::create([
@@ -757,7 +756,6 @@ class PortalController extends Controller
                 ]);
 
                 $user->teacher_id = $teacherModel->teacher_id;
-                $teacherWasCreated = true;
             }
 
             if ($user->teacher_id !== null) {
@@ -780,23 +778,21 @@ class PortalController extends Controller
             $user->save();
 
 
-            if ($teacherWasCreated) {
-                $this->upsertTeacherParentDaySetting(
-                    $user->teacher_id,
-                    $parentDay,
-                    (int) $validated['timeslot_duration'],
-                    false
-                );
+            $this->upsertTeacherParentDaySetting(
+                $user->teacher_id,
+                $parentDay,
+                (int) $validated['timeslot_duration'],
+                false
+            );
 
-                $this->createTimeslotsForTeacher(
-                    $user->teacher_id,
-                    $parentDay,
-                    $validated['timeslot_start'],
-                    $validated['timeslot_end'],
-                    (int) $validated['timeslot_duration'],
-                    $validated['timeslot_room']
-                );
-            }
+            $this->createGeneratedTimeslotsForTeacher(
+                $user->teacher_id,
+                $parentDay,
+                $validated['timeslot_start'],
+                $validated['timeslot_end'],
+                (int) $validated['timeslot_duration'],
+                $validated['timeslot_room']
+            );
 
             if ($alreadyExisted) {
                 $updatedCount++;
@@ -1157,6 +1153,21 @@ class PortalController extends Controller
             : collect();
 
         return $this->allTeacherProfilesCache = Teacher::query()
+            ->when($parentDay, function ($query) use ($parentDay) {
+                $query->where(function ($assignedQuery) use ($parentDay) {
+                    $assignedQuery
+                        ->whereHas(
+                            'parentDaySettings',
+                            fn ($settingsQuery) => $settingsQuery
+                                ->where('parent_day_id', $parentDay->id)
+                        )
+                        ->orWhereHas(
+                            'timeslots',
+                            fn ($timeslotQuery) => $timeslotQuery
+                                ->where('parent_day_id', $parentDay->id)
+                        );
+                });
+            })
             ->withCount([
                 'timeslots as free_slots' => fn ($query) => $query
                     ->where('is_reserved', false)
@@ -1580,20 +1591,42 @@ class PortalController extends Controller
                 return $this->availableParentDaysCache = collect();
             }
 
-            $query->where(function ($parentDayQuery) use ($teacher) {
+            $query->whereHas(
+                'timeslots',
+                fn ($timeslotQuery) => $timeslotQuery
+                    ->where('teacher_id', $teacher->teacher_id)
+            );
+        }
+
+        if ($user?->isStudentUser()) {
+            $studentClass = $this->currentStudentClass();
+            $bookableTeacherIds = Teacher::query()
+                ->get()
+                ->filter(function (Teacher $teacher) use ($studentClass) {
+                    $classes = collect($teacher->classes ?? [])
+                        ->map(fn ($className) => $this->normalizeSingleClassName((string) $className))
+                        ->filter()
+                        ->values()
+                        ->all();
+
+                    return $studentClass === null
+                        || $classes === []
+                        || in_array($studentClass, $classes, true);
+                })
+                ->pluck('teacher_id');
+
+            $query->where(function ($parentDayQuery) use ($bookableTeacherIds, $user) {
                 $parentDayQuery->whereHas(
                     'timeslots',
                     fn ($timeslotQuery) => $timeslotQuery
-                        ->where('teacher_id', $teacher->teacher_id)
+                        ->where('is_reserved', false)
+                        ->whereIn('teacher_id', $bookableTeacherIds)
+                )->orWhereHas(
+                    'timeslots',
+                    fn ($timeslotQuery) => $timeslotQuery
+                        ->where('is_reserved', true)
+                        ->where('student_id', $user->id)
                 );
-
-                if (Schema::hasTable('teacher_parent_day_settings')) {
-                    $parentDayQuery->orWhereHas(
-                        'teacherSettings',
-                        fn ($settingQuery) => $settingQuery
-                            ->where('teacher_id', $teacher->teacher_id)
-                    );
-                }
             });
         }
 

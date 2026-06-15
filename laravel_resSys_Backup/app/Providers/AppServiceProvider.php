@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\ParentDay;
 use App\Models\Teacher;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
@@ -73,20 +74,45 @@ class AppServiceProvider extends ServiceProvider
                 if ($teacherId === null) {
                     $parentDaysQuery->whereRaw('1 = 0');
                 } else {
-                    $parentDaysQuery->where(function ($query) use ($teacherId) {
-                        $query->whereHas(
-                            'timeslots',
-                            fn ($timeslotQuery) => $timeslotQuery->where('teacher_id', $teacherId)
-                        );
-
-                        if (Schema::hasTable('teacher_parent_day_settings')) {
-                            $query->orWhereHas(
-                                'teacherSettings',
-                                fn ($settingQuery) => $settingQuery->where('teacher_id', $teacherId)
-                            );
-                        }
-                    });
+                    $parentDaysQuery->whereHas(
+                        'timeslots',
+                        fn ($timeslotQuery) => $timeslotQuery->where('teacher_id', $teacherId)
+                    );
                 }
+            }
+
+            if ($user?->isStudentUser()) {
+                $studentClass = $this->studentClass($user->klasse);
+                $bookableTeacherIds = Schema::hasTable('teachers')
+                    ? Teacher::query()
+                        ->get()
+                        ->filter(function (Teacher $teacher) use ($studentClass) {
+                            $classes = collect($teacher->classes ?? [])
+                                ->map(fn ($className) => $this->studentClass($className))
+                                ->filter()
+                                ->values()
+                                ->all();
+
+                            return $studentClass === null
+                                || $classes === []
+                                || in_array($studentClass, $classes, true);
+                        })
+                        ->pluck('teacher_id')
+                    : new Collection();
+
+                $parentDaysQuery->where(function ($query) use ($bookableTeacherIds, $user) {
+                    $query->whereHas(
+                        'timeslots',
+                        fn ($timeslotQuery) => $timeslotQuery
+                            ->where('is_reserved', false)
+                            ->whereIn('teacher_id', $bookableTeacherIds)
+                    )->orWhereHas(
+                        'timeslots',
+                        fn ($timeslotQuery) => $timeslotQuery
+                            ->where('is_reserved', true)
+                            ->where('student_id', $user->id)
+                    );
+                });
             }
 
             $parentDays = $parentDaysQuery->get();
@@ -119,5 +145,14 @@ class AppServiceProvider extends ServiceProvider
             ->lower()
             ->replaceMatches('/[^a-z0-9]+/', '')
             ->toString();
+    }
+
+    private function studentClass(mixed $className): ?string
+    {
+        $normalized = preg_replace('/\s+/', '', Str::upper(trim((string) $className)));
+
+        return preg_match('/^\d[A-Z0-9]{3,7}$/', $normalized) === 1
+            ? $normalized
+            : null;
     }
 }

@@ -69,17 +69,37 @@
                 <div class="button-row" style="justify-content: center; margin-top: 14px;">
                     <button
                         type="button"
-                        class="ghost-button"
+                        class="ghost-button teacher-grid-toggle-desktop"
                         data-teacher-grid-toggle
                         aria-expanded="false"
                         hidden
                     >
                         Mehr Lehrer
                     </button>
+                    <a
+                        class="ghost-button teacher-grid-link-mobile"
+                        href="{{ route('student.teachers.index') }}"
+                    >
+                        Alle anzeigen
+                    </a>
                 </div>
                 <style>
                     [data-teacher-tile][hidden] {
                         display: none;
+                    }
+
+                    .teacher-grid-link-mobile {
+                        display: none;
+                    }
+
+                    @media (max-width: 860px) {
+                        .teacher-grid-toggle-desktop {
+                            display: none !important;
+                        }
+
+                        .teacher-grid-link-mobile {
+                            display: inline-flex;
+                        }
                     }
                 </style>
             @endif
