@@ -30,7 +30,7 @@ beforeEach(function () {
     });
 
     Schema::create('teachers', function (Blueprint $table) {
-        $table->integer('teacher_id')->primary();
+        $table->increments('teacher_id');
         $table->string('first_name');
         $table->string('last_name');
         $table->json('classes');
@@ -40,11 +40,12 @@ beforeEach(function () {
         $table->id();
         $table->date('date')->unique();
         $table->string('label')->nullable();
+        $table->boolean('is_active_for_students')->default(true);
         $table->timestamps();
     });
 
     Schema::create('timeslots', function (Blueprint $table) {
-        $table->integer('id')->primary();
+        $table->increments('id');
         $table->integer('teacher_id');
         $table->foreignId('parent_day_id')->nullable();
         $table->integer('student_id')->nullable();
@@ -52,6 +53,7 @@ beforeEach(function () {
         $table->dateTime('ends_at');
         $table->string('room');
         $table->boolean('is_reserved')->default(false);
+        $table->unique(['teacher_id', 'parent_day_id', 'starts_at']);
     });
 
     Schema::create('teacher_parent_day_settings', function (Blueprint $table) {
@@ -163,6 +165,51 @@ test('a student sees only parent days with a bookable or already booked appointm
 
     expect($parentDays->pluck('id')->all())
         ->toBe([$bookableDay->id, $bookedDay->id]);
+});
+
+test('an admin can hide a parent day from students', function () {
+    $admin = User::factory()->create([
+        'is_teacher' => false,
+        'is_admin' => true,
+    ]);
+    $student = User::factory()->create([
+        'klasse' => '3AHIT',
+        'is_teacher' => false,
+        'is_admin' => false,
+    ]);
+    $teacher = Teacher::create([
+        'teacher_id' => 1,
+        'first_name' => 'Max',
+        'last_name' => 'Muster',
+        'classes' => ['3AHIT'],
+    ]);
+    $parentDay = ParentDay::create([
+        'date' => now()->addWeek()->toDateString(),
+    ]);
+
+    Timeslot::create([
+        'id' => 1,
+        'teacher_id' => $teacher->teacher_id,
+        'parent_day_id' => $parentDay->id,
+        'starts_at' => $parentDay->date->copy()->setTime(17, 0),
+        'ends_at' => $parentDay->date->copy()->setTime(17, 10),
+        'room' => 'A101',
+        'is_reserved' => false,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.parent-days.student-access.update', $parentDay), [
+            'is_active_for_students' => 0,
+        ])
+        ->assertRedirect(route('admin.dashboard').'#parent-day');
+
+    expect($parentDay->fresh()->is_active_for_students)->toBeFalse();
+
+    $this->actingAs($student);
+    $controller = app(PortalController::class);
+    $method = new ReflectionMethod($controller, 'availableParentDaysForCurrentUser');
+
+    expect($method->invoke($controller))->toBeEmpty();
 });
 
 test('a teacher can select only parent days with actual timeslots', function () {
@@ -325,6 +372,66 @@ test('teacher profiles are limited to the selected parent day', function () {
 
     expect($profiles->pluck('reference_id')->all())
         ->toBe([$selectedTeacher->teacher_id]);
+});
+
+test('teacher profiles are empty when no parent day exists', function () {
+    $admin = User::factory()->create([
+        'is_teacher' => false,
+        'is_admin' => true,
+    ]);
+
+    Teacher::create([
+        'teacher_id' => 1,
+        'first_name' => 'Max',
+        'last_name' => 'Muster',
+        'classes' => [],
+    ]);
+
+    $this->actingAs($admin);
+
+    $controller = app(PortalController::class);
+    $method = new ReflectionMethod($controller, 'allTeacherProfiles');
+
+    expect($method->invoke($controller))->toBeEmpty();
+});
+
+test('generating the same teacher timeslots twice does not create duplicates', function () {
+    $teacher = Teacher::create([
+        'first_name' => 'Max',
+        'last_name' => 'Muster',
+        'classes' => [],
+    ]);
+    $parentDay = ParentDay::create([
+        'date' => now()->addWeek()->toDateString(),
+    ]);
+
+    $controller = app(PortalController::class);
+    $method = new ReflectionMethod($controller, 'createGeneratedTimeslotsForTeacher');
+
+    $firstResult = $method->invoke(
+        $controller,
+        $teacher->teacher_id,
+        $parentDay,
+        '17:00',
+        '17:30',
+        10,
+        'A101'
+    );
+    $secondResult = $method->invoke(
+        $controller,
+        $teacher->teacher_id,
+        $parentDay,
+        '17:00',
+        '17:30',
+        10,
+        'A101'
+    );
+
+    expect($teacher->teacher_id)->toBeInt()
+        ->and($firstResult)->toBe(['created' => 3, 'skipped' => 0])
+        ->and($secondResult)->toBe(['created' => 0, 'skipped' => 3])
+        ->and(Timeslot::query()->count())->toBe(3)
+        ->and(Timeslot::query()->pluck('id')->unique()->count())->toBe(3);
 });
 
 test('manually adding an existing teacher assigns them to the selected parent day', function () {

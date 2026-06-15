@@ -16,14 +16,14 @@ return new class extends Migration
         });
 
         Schema::create('teachers', function (Blueprint $table) {
-            $table->integer('teacher_id')->primary();
+            $table->increments('teacher_id');
             $table->string('first_name');
             $table->string('last_name');
             $table->json('classes');
         });
 
         Schema::create('timeslots', function (Blueprint $table) {
-            $table->integer('id')->primary();
+            $table->increments('id');
             $table->integer('teacher_id');
             $table->foreign('teacher_id')
                 ->references('teacher_id')

@@ -84,49 +84,17 @@ beforeEach(function () {
     ]);
 });
 
-test('an overlapping booking asks the student which appointment to keep', function () {
+test('an overlapping booking at the same parent day is rejected', function () {
     createBookingConflictTimeslots($this->studentUser->id);
 
     $this->actingAs($this->studentUser)
         ->from('/student/teachers/nora-neu-2')
         ->post(route('student.timeslots.book'), ['timeslot_id' => 2])
         ->assertRedirect('/student/teachers/nora-neu-2')
-        ->assertSessionHas('booking_conflict');
+        ->assertSessionHas('error', 'Du hast zu dieser Uhrzeit bereits einen anderen Termin.');
 
     expect(Timeslot::find(1)->is_reserved)->toBeTrue()
         ->and(Timeslot::find(2)->is_reserved)->toBeFalse();
-});
-
-test('the student can keep the new appointment and release the overlapping one', function () {
-    createBookingConflictTimeslots($this->studentUser->id);
-
-    $this->actingAs($this->studentUser)
-        ->post(route('student.timeslots.book'), [
-            'timeslot_id' => 2,
-            'conflict_resolution' => 'keep_new',
-        ])
-        ->assertRedirect(route('student.bookings'));
-
-    expect(Timeslot::find(1)->is_reserved)->toBeFalse()
-        ->and(Timeslot::find(1)->student_id)->toBeNull()
-        ->and(Timeslot::find(2)->is_reserved)->toBeTrue()
-        ->and(Timeslot::find(2)->student_id)->toBe($this->studentUser->id);
-});
-
-test('the student can keep the existing appointment', function () {
-    createBookingConflictTimeslots($this->studentUser->id);
-
-    $this->actingAs($this->studentUser)
-        ->post(route('student.timeslots.book'), [
-            'timeslot_id' => 2,
-            'conflict_resolution' => 'keep_existing',
-        ])
-        ->assertRedirect(route('student.bookings'));
-
-    expect(Timeslot::find(1)->is_reserved)->toBeTrue()
-        ->and(Timeslot::find(1)->student_id)->toBe($this->studentUser->id)
-        ->and(Timeslot::find(2)->is_reserved)->toBeFalse()
-        ->and(Timeslot::find(2)->student_id)->toBeNull();
 });
 
 test('appointments that only touch at their boundaries do not conflict', function () {
@@ -134,11 +102,80 @@ test('appointments that only touch at their boundaries do not conflict', functio
 
     $this->actingAs($this->studentUser)
         ->post(route('student.timeslots.book'), ['timeslot_id' => 2])
-        ->assertRedirect(route('student.bookings'))
-        ->assertSessionMissing('booking_conflict');
+        ->assertRedirect(route('student.bookings'));
 
     expect(Timeslot::find(1)->is_reserved)->toBeTrue()
         ->and(Timeslot::find(2)->is_reserved)->toBeTrue();
+});
+
+test('a second appointment with the same teacher at the same parent day is rejected', function () {
+    $date = now()->addWeek()->format('Y-m-d');
+
+    Timeslot::create([
+        'id' => 1,
+        'teacher_id' => 1,
+        'parent_day_id' => 10,
+        'student_id' => $this->studentUser->id,
+        'starts_at' => "{$date} 17:00:00",
+        'ends_at' => "{$date} 17:10:00",
+        'room' => 'A101',
+        'is_reserved' => true,
+    ]);
+
+    Timeslot::create([
+        'id' => 2,
+        'teacher_id' => 1,
+        'parent_day_id' => 10,
+        'starts_at' => "{$date} 17:20:00",
+        'ends_at' => "{$date} 17:30:00",
+        'room' => 'A101',
+        'is_reserved' => false,
+    ]);
+
+    $this->actingAs($this->studentUser)
+        ->from('/student/teachers/anna-alt-1')
+        ->post(route('student.timeslots.book'), ['timeslot_id' => 2])
+        ->assertRedirect('/student/teachers/anna-alt-1')
+        ->assertSessionHas(
+            'error',
+            'Du hast bei diesem Lehrer für diesen Elternsprechtag bereits einen Termin.'
+        );
+
+    expect(Timeslot::find(1)->is_reserved)->toBeTrue()
+        ->and(Timeslot::find(2)->is_reserved)->toBeFalse();
+});
+
+test('the same teacher can be booked on a different parent day', function () {
+    $date = now()->addWeek()->format('Y-m-d');
+
+    Timeslot::create([
+        'id' => 1,
+        'teacher_id' => 1,
+        'parent_day_id' => 10,
+        'student_id' => $this->studentUser->id,
+        'starts_at' => "{$date} 17:00:00",
+        'ends_at' => "{$date} 17:10:00",
+        'room' => 'A101',
+        'is_reserved' => true,
+    ]);
+
+    Timeslot::create([
+        'id' => 2,
+        'teacher_id' => 1,
+        'parent_day_id' => 11,
+        'starts_at' => "{$date} 17:00:00",
+        'ends_at' => "{$date} 17:10:00",
+        'room' => 'A101',
+        'is_reserved' => false,
+    ]);
+
+    $this->actingAs($this->studentUser)
+        ->post(route('student.timeslots.book'), ['timeslot_id' => 2])
+        ->assertRedirect(route('student.bookings'));
+
+    expect(Timeslot::find(1)->is_reserved)->toBeTrue()
+        ->and(Timeslot::find(2)->is_reserved)->toBeTrue()
+        ->and(Timeslot::find(2)->student_id)->toBe($this->studentUser->id);
 });
 
 function createBookingConflictTimeslots(int $studentId, string $newStart = '17:05'): void
@@ -148,6 +185,7 @@ function createBookingConflictTimeslots(int $studentId, string $newStart = '17:0
     Timeslot::create([
         'id' => 1,
         'teacher_id' => 1,
+        'parent_day_id' => 10,
         'student_id' => $studentId,
         'starts_at' => "{$date} 17:00:00",
         'ends_at' => "{$date} 17:10:00",
@@ -158,6 +196,7 @@ function createBookingConflictTimeslots(int $studentId, string $newStart = '17:0
     Timeslot::create([
         'id' => 2,
         'teacher_id' => 2,
+        'parent_day_id' => 10,
         'starts_at' => "{$date} {$newStart}:00",
         'ends_at' => "{$date} 17:15:00",
         'room' => 'B202',

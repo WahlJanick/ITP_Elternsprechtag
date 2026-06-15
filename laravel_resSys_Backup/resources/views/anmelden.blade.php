@@ -31,6 +31,7 @@
             body {
                 margin: 0;
                 min-height: 100vh;
+                min-height: 100dvh;
                 display: grid;
                 place-items: center;
                 padding: 24px;
@@ -181,8 +182,126 @@
             }
 
             @media (max-width: 520px) {
+                body {
+                    display: block;
+                    padding: 12px;
+                }
+
                 .login-shell {
-                    padding: 28px 18px;
+                    width: 100%;
+                    min-height: calc(100dvh - 24px);
+                    align-content: center;
+                    gap: 16px;
+                    padding: 24px 16px;
+                    border-width: 2px;
+                    border-radius: 10px;
+                }
+
+                .school-logo {
+                    width: min(100%, 360px);
+                    height: auto;
+                    max-height: 72px;
+                    object-fit: contain;
+                }
+
+                .welcome {
+                    max-width: 340px;
+                    font-size: clamp(1.65rem, 8vw, 2.1rem);
+                    line-height: 1.08;
+                    overflow-wrap: anywhere;
+                }
+
+                .welcome br {
+                    display: none;
+                }
+
+                .brand {
+                    font-size: clamp(3.5rem, 20vw, 5rem);
+                }
+
+                .brand::after {
+                    height: 3px;
+                    margin-top: 10px;
+                }
+
+                .login-area {
+                    width: 100%;
+                    max-width: 360px;
+                    padding: 12px;
+                }
+
+                .login-button {
+                    min-height: 52px;
+                    gap: 9px;
+                    padding-inline: 12px;
+                    font-size: 0.93rem;
+                }
+
+                .login-button .arrow {
+                    width: 17px;
+                    height: 17px;
+                }
+
+                .login-hint {
+                    font-size: 0.78rem;
+                }
+
+                .error {
+                    width: 100%;
+                    font-size: 0.88rem;
+                }
+            }
+
+            @media (max-width: 360px) {
+                body {
+                    padding: 8px;
+                }
+
+                .login-shell {
+                    min-height: calc(100dvh - 16px);
+                    gap: 13px;
+                    padding: 18px 12px;
+                }
+
+                .welcome {
+                    font-size: 1.55rem;
+                }
+
+                .brand {
+                    font-size: 3.35rem;
+                }
+
+                .login-area {
+                    padding: 10px;
+                }
+            }
+
+            @media (max-height: 600px) and (max-width: 920px) {
+                body {
+                    display: block;
+                    padding: 8px;
+                }
+
+                .login-shell {
+                    min-height: calc(100dvh - 16px);
+                    gap: 10px;
+                    padding-block: 14px;
+                }
+
+                .school-logo {
+                    max-height: 56px;
+                }
+
+                .welcome {
+                    font-size: 1.55rem;
+                }
+
+                .brand {
+                    font-size: 3.4rem;
+                }
+
+                .brand::after {
+                    margin-top: 7px;
                 }
             }
         </style>
@@ -195,7 +314,6 @@
                 class="school-logo"
             >
 
-            <p class="eyebrow">Elternsprechtag digital</p>
 
             <h1 class="welcome">
                 Willkommen auf der Plattform für Elternsprechtags-<br>

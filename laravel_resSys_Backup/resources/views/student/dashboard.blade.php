@@ -4,26 +4,18 @@
     'theme' => 'student',
     'homeRoute' => 'student.booking',
     'navLinks' => [
+        ['label' => 'Übersicht', 'route' => 'student.booking', 'active' => 'student.booking'],
         ['label' => 'Buchen', 'route' => 'student.teachers.index', 'active' => 'student.teachers.*'],
         ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings', 'disabled' => $summary['count'] === 0],
     ],
 ])
 
 @section('content')
-    <div class="stack">
+    <div class="stack student-dashboard-screen">
         <section class="panel">
             <div class="panel-header">
                 <div>
                     <h2 class="eyebrow eyebrow-heading">Termine</h2>
-                </div>
-
-                <div class="hero-actions">
-                    <a class="button" href="{{ route('student.teachers.index') }}">Buchen</a>
-                    @if($summary['count'] > 0)
-                        <a class="ghost-button" href="{{ route('student.bookings') }}">Details</a>
-                    @else
-                        <span class="ghost-button is-disabled" aria-disabled="true">Details</span>
-                    @endif
                 </div>
             </div>
 
@@ -105,6 +97,95 @@
             @endif
         </section>
     </div>
+
+    <style>
+        .student-dashboard-screen,
+        .student-dashboard-screen > *,
+        .student-dashboard-screen .hero-grid,
+        .student-dashboard-screen .summary-grid,
+        .student-dashboard-screen .teacher-grid {
+            min-width: 0;
+        }
+
+        @media (max-width: 640px) {
+            .student-dashboard-screen {
+                gap: 12px;
+            }
+
+            .student-dashboard-screen .panel {
+                padding: 12px;
+                border-width: 2px;
+            }
+
+            .student-dashboard-screen .panel-header {
+                margin-bottom: 10px;
+            }
+
+            .student-dashboard-screen .hero-grid {
+                display: block;
+            }
+
+            .student-dashboard-screen .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .student-dashboard-screen .stat-card {
+                min-width: 0;
+                min-height: 104px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 12px 8px;
+                text-align: center;
+            }
+
+            .student-dashboard-screen .number {
+                font-size: 1.9rem;
+            }
+
+            .student-dashboard-screen .mini-label {
+                font-size: 0.8rem;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+
+            .student-dashboard-screen .teacher-grid {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 10px;
+            }
+
+            .student-dashboard-screen .tile {
+                width: 100%;
+                min-width: 0;
+                min-height: 116px;
+                padding: 13px 10px;
+            }
+
+            .student-dashboard-screen .tile-title,
+            .student-dashboard-screen .status-chip {
+                max-width: 100%;
+                overflow-wrap: anywhere;
+                white-space: normal;
+                text-align: center;
+            }
+
+            .student-dashboard-screen .teacher-grid-link-mobile {
+                width: 100%;
+                min-height: 44px;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .student-dashboard-screen .summary-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .student-dashboard-screen .stat-card {
+                min-height: 88px;
+            }
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

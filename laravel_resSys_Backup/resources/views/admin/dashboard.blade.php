@@ -191,7 +191,6 @@
                                 <path d="M12 5v14"></path>
                                 <path d="M5 12h14"></path>
                             </svg>
-                            Anlegen
                         </button>
                     </div>
                 </div>
@@ -202,14 +201,34 @@
             @else
                 <div class="list-stack">
                     @foreach($parentDays as $day)
+                        @php
+                            $isExpiredParentDay = $day->date->isBefore(today());
+                        @endphp
                         <article class="list-row is-interactive {{ $activeParentDay && $activeParentDay->id === $day->id ? 'is-highlighted' : '' }}">
                             <div class="list-row-copy">
                                 <p class="list-row-title">{{ $day->date->format('d/m/Y') }}</p>
-                                <p class="meta-copy">
-                                    {{ $activeParentDay && $activeParentDay->id === $day->id ? 'Aktiver Elternsprechtag' : 'Nicht aktiv' }}
-                                </p>
+                                <div class="button-row">
+                                    <span class="status-chip {{ ! $isExpiredParentDay && $day->is_active_for_students ? 'is-free' : 'is-booked' }}">
+                                        @if($isExpiredParentDay)
+                                            abgelaufen
+                                        @else
+                                            {{ $day->is_active_for_students ? 'aktiviert' : 'deaktiviert' }}
+                                        @endif
+                                    </span>
+                                </div>
                             </div>
                             <div class="list-row-actions actions-on-hover">
+                                <form method="POST" action="{{ route('admin.parent-days.student-access.update', $day->id) }}">
+                                    @csrf
+                                    <input
+                                        type="hidden"
+                                        name="is_active_for_students"
+                                        value="{{ $day->is_active_for_students ? 0 : 1 }}"
+                                    >
+                                    <button type="submit" class="{{ $day->is_active_for_students ? 'ghost-button' : 'button' }}">
+                                        {{ $day->is_active_for_students ? 'Für Schüler deaktivieren' : 'Für Schüler aktivieren' }}
+                                    </button>
+                                </form>
                                 <form method="POST" action="{{ route('admin.parent-days.delete', $day->id) }}">
                                     @csrf
                                     <button type="submit" class="danger-button">
@@ -235,6 +254,16 @@
                 <div>
                     <h2 class="panel-title">Lehrer</h2>
                 </div>
+                <a
+                    class="button admin-teacher-add-shortcut"
+                    href="#teacher-create"
+                    aria-label="Zum Bereich Lehrer anlegen"
+                    data-no-default-icon
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                </a>
             </div>
 
             <div class="field" style="margin-bottom: 12px;">
@@ -257,36 +286,40 @@
                             data-search-item
                             data-search-text="{{ \Illuminate\Support\Str::lower($teacher['name'].' '.$teacher['short'].' '.$teacher['display_classes']) }}"
                         >
+                            <div class="list-row-actions actions-on-hover admin-teacher-primary-actions">
+                                <a class="ghost-button" href="{{ route('admin.teachers.appointments', $teacher['slug']) }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                        <path d="M16 2v4"></path>
+                                        <path d="M8 2v4"></path>
+                                        <path d="M3 10h18"></path>
+                                    </svg>
+                                    Termine
+                                </a>
+                                <a class="button" href="{{ route('admin.teachers.show', $teacher['slug']) }}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M12 20h9"></path>
+                                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                    </svg>
+                                    Bearbeiten
+                                </a>
+                            </div>
+
                             <div class="admin-teacher-head">
                                 <p class="list-row-title">{{ $teacher['name'] }}</p>
-                                <div class="list-row-actions actions-on-hover">
-                                    @if($teacher['room'] === '')
-                                        <button type="button" class="ghost-button" data-teacher-room-add>
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                                <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
-                                                <path d="M12 8v6M9 11h6"></path>
-                                            </svg>
-                                            Raum hinzufügen
-                                        </button>
-                                    @endif
-                                    <a class="ghost-button" href="{{ route('admin.teachers.appointments', $teacher['slug']) }}">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-                                            <path d="M16 2v4"></path>
-                                            <path d="M8 2v4"></path>
-                                            <path d="M3 10h18"></path>
-                                        </svg>
-                                        Termine
-                                    </a>
-                                    <a class="button" href="{{ route('admin.teachers.show', $teacher['slug']) }}">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M12 20h9"></path>
-                                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-                                        </svg>
-                                        Bearbeiten
-                                    </a>
-                                </div>
                             </div>
+
+                            @if($teacher['room'] === '')
+                                <div class="button-row actions-on-hover">
+                                    <button type="button" class="ghost-button" data-teacher-room-add>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
+                                            <path d="M12 8v6M9 11h6"></path>
+                                        </svg>
+                                        Raum hinzufügen
+                                    </button>
+                                </div>
+                            @endif
 
                             <div class="teacher-class-badges" aria-label="Zugeordnete Klassen">
                                 @forelse($teacher['classes'] as $className)
@@ -920,6 +953,23 @@
             const initialHash = window.location.hash.slice(1);
             if (hashMenus[initialHash]) {
                 openAdminMenu(hashMenus[initialHash]);
+            } else {
+                openAdminMenu('overview');
+            }
+
+            const teacherRoomScrollKey = 'admin-teacher-room-scroll-position';
+            const savedTeacherRoomScroll = sessionStorage.getItem(teacherRoomScrollKey);
+
+            if (savedTeacherRoomScroll !== null) {
+                window.addEventListener('load', () => {
+                    requestAnimationFrame(() => {
+                        window.scrollTo({
+                            top: Number(savedTeacherRoomScroll),
+                            behavior: 'auto',
+                        });
+                        sessionStorage.removeItem(teacherRoomScrollKey);
+                    });
+                }, { once: true });
             }
 
             const wizard = document.querySelector('[data-wizard="teacher"]');
@@ -1025,6 +1075,10 @@
                 if (!(input instanceof HTMLInputElement)) {
                     return;
                 }
+
+                form.addEventListener('submit', () => {
+                    sessionStorage.setItem(teacherRoomScrollKey, String(window.scrollY));
+                });
 
                 const openRoomEditor = () => {
                     editTrigger.hidden = true;
@@ -1200,4 +1254,82 @@
 
         })();
     </script>
+
+    <style>
+        .admin-teacher-add-shortcut {
+            width: 44px;
+            min-width: 44px;
+            padding: 0;
+        }
+
+        .admin-teacher-add-shortcut svg {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+        }
+
+        .admin-teacher-primary-actions {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 2;
+            width: auto;
+        }
+
+        .admin-teacher-row {
+            position: relative;
+            padding-right: 250px;
+        }
+
+        .parent-day-create-row {
+            flex-wrap: nowrap;
+        }
+
+        .parent-day-create-row input {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin-bottom: 10px;
+        }
+
+        .parent-day-create-row .parent-day-create-button {
+            flex: 0 0 auto;
+            width: auto;
+            margin-block-start: 0;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 860px) {
+            .parent-day-create-row {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .parent-day-create-row input {
+                width: auto;
+            }
+
+            .parent-day-create-row .parent-day-create-button {
+                width: auto;
+                margin-inline-start: 8px;
+            }
+
+            .admin-teacher-primary-actions {
+                top: 12px;
+                right: 12px;
+                width: auto;
+                margin: 0;
+            }
+
+            .admin-teacher-primary-actions .button,
+            .admin-teacher-primary-actions .ghost-button {
+                flex: 0 0 auto;
+                padding-inline: 10px;
+            }
+
+            .admin-teacher-row {
+                padding-top: 70px;
+                padding-right: 14px;
+            }
+        }
+    </style>
 @endsection

@@ -115,6 +115,14 @@
                 box-sizing: border-box;
             }
 
+            html {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+                -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
+
             .sr-only {
                 position: absolute;
                 width: 1px;
@@ -129,7 +137,10 @@
 
             body {
                 margin: 0;
+                width: 100%;
+                max-width: 100%;
                 min-height: 100vh;
+                overflow-x: hidden;
                 background:
                     radial-gradient(circle at top, color-mix(in srgb, var(--panel-stroke) 24%, transparent), transparent 36%),
                     linear-gradient(180deg, #fbfdff 0%, var(--page-bg) 100%);
@@ -309,6 +320,20 @@
 
             .parent-day-control.is-open .parent-day-trigger::after {
                 transform: translateY(-20%) rotate(225deg);
+            }
+
+            .parent-day-trigger.is-static {
+                padding-right: 12px;
+                cursor: default;
+            }
+
+            .parent-day-trigger.is-static::after {
+                display: none;
+            }
+
+            .parent-day-trigger.is-static:hover {
+                border-color: color-mix(in srgb, var(--header-link-border) 62%, white);
+                box-shadow: 0 4px 10px color-mix(in srgb, var(--header-link-border) 16%, transparent);
             }
 
             .parent-day-trigger:hover,
@@ -547,6 +572,7 @@
             }
 
             .page-content {
+                width: 100%;
                 max-width: 1120px;
                 margin: 34px auto 64px;
                 padding: 0 18px;
@@ -559,12 +585,42 @@
             }
 
             .flash {
+                position: relative;
                 border-radius: 12px;
-                padding: 14px 16px;
+                padding: 14px 52px 14px 16px;
                 border: 3px solid var(--panel-stroke);
                 background: rgba(255, 255, 255, 0.82);
                 box-shadow: var(--shadow);
                 font-weight: 700;
+            }
+
+            .flash-dismiss {
+                position: absolute;
+                top: 50%;
+                right: 10px;
+                width: 32px;
+                height: 32px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                border: 0;
+                border-radius: 8px;
+                background: transparent;
+                color: currentColor;
+                transform: translateY(-50%);
+            }
+
+            .flash-dismiss:hover,
+            .flash-dismiss:focus-visible {
+                background: rgba(255, 255, 255, 0.7);
+                outline: 2px solid currentColor;
+                outline-offset: 1px;
+            }
+
+            .flash-dismiss svg {
+                width: 18px;
+                height: 18px;
             }
 
             .flash-success {
@@ -1952,7 +2008,15 @@
             }
 
             @media (max-width: 640px) {
+                html,
+                body {
+                    min-width: 0;
+                    overflow-x: clip;
+                }
+
                 .header-inner {
+                    width: 100%;
+                    max-width: 100%;
                     min-height: 72px;
                     padding: 8px 12px 10px;
                     gap: 10px;
@@ -2066,6 +2130,12 @@
                     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
                 }
 
+                .theme-student .mobile-nav-link {
+                    flex: 1 1 0;
+                    min-width: 0;
+                    padding-inline: 8px;
+                }
+
                 .mobile-nav-link:hover,
                 .mobile-nav-link:focus-visible,
                 .mobile-nav-link.is-active {
@@ -2081,7 +2151,10 @@
                 }
 
                 .page-content {
+                    width: 100%;
+                    max-width: 100%;
                     margin-top: 16px;
+                    padding-inline: 12px;
                     padding-bottom: calc(82px + env(safe-area-inset-bottom));
                 }
 
@@ -2224,12 +2297,13 @@
                                 </select>
                                 <button
                                     type="button"
-                                    class="parent-day-trigger"
+                                    class="parent-day-trigger {{ $parentDays->count() === 1 ? 'is-static' : '' }}"
                                     aria-haspopup="listbox"
                                     aria-expanded="false"
                                     aria-controls="parent-day-menu"
                                     data-parent-day-trigger
                                     data-no-default-icon
+                                    @if($parentDays->count() === 1) disabled aria-disabled="true" @endif
                                 >
                                     {{ $activeParentDay?->date?->format('d/m/Y') ?? $parentDays->first()?->date?->format('d/m/Y') }}
                                 </button>
@@ -2342,11 +2416,25 @@
             @if(session('success') || session('error'))
                 <div class="flash-stack">
                     @if(session('success'))
-                        <div class="flash flash-success">{{ session('success') }}</div>
+                        <div class="flash flash-success">
+                            {{ session('success') }}
+                            <button type="button" class="flash-dismiss" aria-label="Meldung schließen" data-dismiss-flash data-no-default-icon>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+                                    <path d="M6 6l12 12M18 6 6 18"></path>
+                                </svg>
+                            </button>
+                        </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="flash flash-error">{{ session('error') }}</div>
+                        <div class="flash flash-error">
+                            {{ session('error') }}
+                            <button type="button" class="flash-dismiss" aria-label="Meldung schließen" data-dismiss-flash data-no-default-icon>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+                                    <path d="M6 6l12 12M18 6 6 18"></path>
+                                </svg>
+                            </button>
+                        </div>
                     @endif
                 </div>
             @endif
@@ -2354,68 +2442,19 @@
             @yield('content')
         </main>
 
-        @if(session('booking_conflict'))
-            @php($bookingConflict = session('booking_conflict'))
-            <div class="modal is-open" role="dialog" aria-modal="true" aria-labelledby="booking-conflict-title">
-                <div class="modal-overlay" aria-hidden="true"></div>
-                <div class="modal-content">
-                    <div class="panel-header" style="margin-bottom: 0;">
-                        <div>
-                            <span class="eyebrow">Terminüberschneidung</span>
-                            <h2 class="panel-title" id="booking-conflict-title">Welchen Termin möchtest du behalten?</h2>
-                        </div>
-                    </div>
-
-                    <p class="meta-copy">
-                        Du kannst während dieses Zeitraums nur bei einem Termin gleichzeitig sein.
-                    </p>
-
-                    <div class="list-stack">
-                        @foreach($bookingConflict['existing'] as $existingAppointment)
-                            <article class="list-row" style="padding: 12px;">
-                                <div class="list-row-copy">
-                                    <strong>Bestehend: {{ $existingAppointment['teacher_name'] }}</strong>
-                                    <span class="meta-copy">
-                                        {{ $existingAppointment['date_label'] }},
-                                        {{ $existingAppointment['time_label'] }} Uhr,
-                                        Raum {{ $existingAppointment['room'] }}
-                                    </span>
-                                </div>
-                            </article>
-                        @endforeach
-
-                        <article class="list-row is-highlighted" style="padding: 12px;">
-                            <div class="list-row-copy">
-                                <strong>Neu: {{ $bookingConflict['new']['teacher_name'] }}</strong>
-                                <span class="meta-copy">
-                                    {{ $bookingConflict['new']['date_label'] }},
-                                    {{ $bookingConflict['new']['time_label'] }} Uhr,
-                                    Raum {{ $bookingConflict['new']['room'] }}
-                                </span>
-                            </div>
-                        </article>
-                    </div>
-
-                    <div class="button-row">
-                        <form method="POST" action="{{ route('student.timeslots.book') }}">
-                            @csrf
-                            <input type="hidden" name="timeslot_id" value="{{ $bookingConflict['timeslot_id'] }}">
-                            <input type="hidden" name="conflict_resolution" value="keep_existing">
-                            <button type="submit" class="ghost-button">Bestehenden behalten</button>
-                        </form>
-
-                        <form method="POST" action="{{ route('student.timeslots.book') }}">
-                            @csrf
-                            <input type="hidden" name="timeslot_id" value="{{ $bookingConflict['timeslot_id'] }}">
-                            <input type="hidden" name="conflict_resolution" value="keep_new">
-                            <button type="submit" class="button">Neuen Termin behalten</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @endif
-
         <script>
+            document.querySelectorAll('[data-dismiss-flash]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const flash = button.closest('.flash');
+                    flash?.remove();
+
+                    const stack = document.querySelector('.flash-stack');
+                    if (stack && ! stack.querySelector('.flash')) {
+                        stack.remove();
+                    }
+                });
+            });
+
             (() => {
                 let titleBeforePrint = null;
 

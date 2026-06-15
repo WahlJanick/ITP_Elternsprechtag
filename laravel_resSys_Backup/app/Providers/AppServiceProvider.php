@@ -82,6 +82,10 @@ class AppServiceProvider extends ServiceProvider
             }
 
             if ($user?->isStudentUser()) {
+                if (Schema::hasColumn('parent_days', 'is_active_for_students')) {
+                    $parentDaysQuery->where('is_active_for_students', true);
+                }
+
                 $studentClass = $this->studentClass($user->klasse);
                 $bookableTeacherIds = Schema::hasTable('teachers')
                     ? Teacher::query()

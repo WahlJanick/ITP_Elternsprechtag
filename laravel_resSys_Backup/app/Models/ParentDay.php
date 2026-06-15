@@ -13,10 +13,12 @@ class ParentDay extends Model
     protected $fillable = [
         'date',
         'label',
+        'is_active_for_students',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'is_active_for_students' => 'boolean',
     ];
 
     public function timeslots(): HasMany

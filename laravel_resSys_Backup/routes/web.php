@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin', [PortalController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::post('/admin/parent-day', [PortalController::class, 'adminParentDayUpdate'])->name('admin.parent-day.update');
+    Route::post('/admin/parent-days/{parentDay}/student-access', [PortalController::class, 'adminParentDayStudentAccessUpdate'])->name('admin.parent-days.student-access.update');
     Route::post('/admin/parent-days/{parentDay}/delete', [PortalController::class, 'adminParentDayDelete'])->name('admin.parent-days.delete');
     Route::post('/admin/classes', [PortalController::class, 'adminClassesStore'])->name('admin.classes.store');
     Route::post('/admin/classes/{schoolClass}/update', [PortalController::class, 'adminClassesUpdate'])->name('admin.classes.update');

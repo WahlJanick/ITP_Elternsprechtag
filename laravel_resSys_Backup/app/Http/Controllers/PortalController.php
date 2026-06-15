@@ -154,10 +154,9 @@ class PortalController extends Controller
     private function processBooking(Timeslot $timeslot): RedirectResponse
     {
         $student = $this->ensureStudentRecord();
-        $conflictResolution = request()->input('conflict_resolution');
 
         try {
-            $result = DB::transaction(function () use ($timeslot, $student, $conflictResolution) {
+            $result = DB::transaction(function () use ($timeslot, $student) {
                 Student::query()
                     ->whereKey($student->getKey())
                     ->lockForUpdate()
@@ -172,55 +171,29 @@ class PortalController extends Controller
                     return ['error' => 'Dieser Termin wurde gerade schon gebucht.'];
                 }
 
-                $conflictingTimeslots = Timeslot::query()
-                    ->with('teacher')
+                $alreadyBookedWithTeacher = Timeslot::query()
+                    ->where('teacher_id', $lockedTimeslot->teacher_id)
+                    ->where('parent_day_id', $lockedTimeslot->parent_day_id)
                     ->where('student_id', $student->student_id)
                     ->where('is_reserved', true)
+                    ->lockForUpdate()
+                    ->exists();
+
+                if ($alreadyBookedWithTeacher) {
+                    return ['error' => 'Du hast bei diesem Lehrer für diesen Elternsprechtag bereits einen Termin.'];
+                }
+
+                $conflictingTimeslots = Timeslot::query()
+                    ->where('student_id', $student->student_id)
+                    ->where('is_reserved', true)
+                    ->where('parent_day_id', $lockedTimeslot->parent_day_id)
                     ->where('starts_at', '<', $lockedTimeslot->ends_at)
                     ->where('ends_at', '>', $lockedTimeslot->starts_at)
                     ->lockForUpdate()
                     ->get();
 
                 if ($conflictingTimeslots->isNotEmpty()) {
-                    if ($conflictResolution === 'keep_existing') {
-                        return ['kept_existing' => true];
-                    }
-
-                    if ($conflictResolution !== 'keep_new') {
-                        return [
-                            'conflict' => $this->bookingConflictPayload(
-                                $lockedTimeslot,
-                                $conflictingTimeslots
-                            ),
-                        ];
-                    }
-                }
-
-                $alreadyBookedWithTeacher = Timeslot::query()
-                    ->where('teacher_id', $lockedTimeslot->teacher_id)
-                    ->where('student_id', $student->student_id)
-                    ->where('is_reserved', true)
-                    ->when(
-                        $lockedTimeslot->parent_day_id,
-                        fn ($query) => $query->where('parent_day_id', $lockedTimeslot->parent_day_id)
-                    )
-                    ->when(
-                        $conflictingTimeslots->isNotEmpty(),
-                        fn ($query) => $query->whereNotIn('id', $conflictingTimeslots->pluck('id'))
-                    )
-                    ->exists();
-
-                if ($alreadyBookedWithTeacher) {
-                    return ['error' => 'Du kannst bei einem Lehrer nur einen Termin buchen.'];
-                }
-
-                if ($conflictingTimeslots->isNotEmpty()) {
-                    Timeslot::query()
-                        ->whereIn('id', $conflictingTimeslots->pluck('id'))
-                        ->update([
-                            'student_id' => null,
-                            'is_reserved' => false,
-                        ]);
+                    return ['error' => 'Du hast zu dieser Uhrzeit bereits einen anderen Termin.'];
                 }
 
                 $lockedTimeslot->update([
@@ -228,10 +201,7 @@ class PortalController extends Controller
                     'is_reserved' => true,
                 ]);
 
-                return [
-                    'booked' => true,
-                    'replaced_conflicts' => $conflictingTimeslots->isNotEmpty(),
-                ];
+                return ['booked' => true];
             });
         } catch (Throwable $exception) {
             report($exception);
@@ -247,50 +217,9 @@ class PortalController extends Controller
                 ->with('error', $result['error']);
         }
 
-        if (isset($result['conflict'])) {
-            return redirect()
-                ->back()
-                ->with('booking_conflict', $result['conflict']);
-        }
-
-        if (! empty($result['kept_existing'])) {
-            return redirect()
-                ->route('student.bookings')
-                ->with('success', 'Der bestehende Termin wurde beibehalten.');
-        }
-
         return redirect()
             ->route('student.bookings')
-            ->with(
-                'success',
-                ! empty($result['replaced_conflicts'])
-                    ? 'Der neue Termin wurde gebucht und der überschneidende Termin freigegeben.'
-                    : 'Termin erfolgreich gebucht.'
-            );
-    }
-
-    private function bookingConflictPayload(Timeslot $newTimeslot, Collection $conflictingTimeslots): array
-    {
-        $formatTimeslot = function (Timeslot $item): array {
-            $teacherName = $item->teacher?->full_name ?? 'Lehrer';
-
-            return [
-                'teacher_name' => $teacherName,
-                'room' => $item->room,
-                'date_label' => optional($item->starts_at)->format('d.m.Y') ?? '',
-                'time_label' => sprintf(
-                    '%s–%s',
-                    optional($item->starts_at)->format('H:i') ?? '--:--',
-                    optional($item->ends_at)->format('H:i') ?? '--:--'
-                ),
-            ];
-        };
-
-        return [
-            'timeslot_id' => $newTimeslot->getKey(),
-            'new' => $formatTimeslot($newTimeslot),
-            'existing' => $conflictingTimeslots->map($formatTimeslot)->values()->all(),
-        ];
+            ->with('success', 'Termin erfolgreich gebucht.');
     }
 
     public function studentBookings()
@@ -420,6 +349,7 @@ class PortalController extends Controller
     public function adminDashboard()
     {
         $this->ensureAdmin();
+        $this->ensureParentDayStudentAccessColumnExists();
         $this->ensureTeacherDurationColumnsExist();
         $this->ensureSchoolClassesTableExists();
         $this->ensureRoomsTableExists();
@@ -509,6 +439,30 @@ class PortalController extends Controller
         return redirect()
             ->route('admin.dashboard')
             ->with('success', 'Elternsprechtag wurde gelöscht.');
+    }
+
+    public function adminParentDayStudentAccessUpdate(Request $request, ParentDay $parentDay): RedirectResponse
+    {
+        $this->ensureAdmin();
+        $this->ensureParentDayStudentAccessColumnExists();
+
+        $validated = $request->validate([
+            'is_active_for_students' => 'required|boolean',
+        ]);
+
+        $isActive = (bool) $validated['is_active_for_students'];
+        $parentDay->update([
+            'is_active_for_students' => $isActive,
+        ]);
+
+        return redirect()
+            ->to(route('admin.dashboard').'#parent-day')
+            ->with(
+                'success',
+                $isActive
+                    ? 'Der Elternsprechtag ist für Schüler wieder sichtbar.'
+                    : 'Der Elternsprechtag wurde für Schüler deaktiviert.'
+            );
     }
 
     public function parentDaySelect(Request $request): RedirectResponse
@@ -748,7 +702,6 @@ class PortalController extends Controller
 
             if ($user->teacher_id === null) {
                 $teacherModel = Teacher::create([
-                    'teacher_id' => $this->nextTeacherId(),
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'kuerzel' => $this->shortCode($displayName),
@@ -817,7 +770,6 @@ class PortalController extends Controller
             [$firstName, $lastName] = $this->splitName($derivedName);
 
             $teacher = Teacher::create([
-                'teacher_id' => $this->nextTeacherId(),
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'kuerzel' => $this->shortCode($derivedName),
@@ -1135,6 +1087,11 @@ class PortalController extends Controller
         $this->ensureTeacherDurationColumnsExist();
 
         $parentDay = $this->currentParentDay();
+
+        if (! $parentDay) {
+            return $this->allTeacherProfilesCache = collect();
+        }
+
         $settingsByTeacher = $parentDay
             ? TeacherParentDaySetting::query()
                 ->where('parent_day_id', $parentDay->id)
@@ -1575,6 +1532,7 @@ class PortalController extends Controller
             return $this->availableParentDaysCache = collect();
         }
 
+        $this->ensureParentDayStudentAccessColumnExists();
         ParentDay::ensureDefaultFromLegacy();
 
         $query = ParentDay::query()->orderBy('date');
@@ -1599,6 +1557,8 @@ class PortalController extends Controller
         }
 
         if ($user?->isStudentUser()) {
+            $query->where('is_active_for_students', true);
+
             $studentClass = $this->currentStudentClass();
             $bookableTeacherIds = Teacher::query()
                 ->get()
@@ -1631,6 +1591,23 @@ class PortalController extends Controller
         }
 
         return $this->availableParentDaysCache = $query->get();
+    }
+
+    private function ensureParentDayStudentAccessColumnExists(): void
+    {
+        static $ensured = false;
+
+        if ($ensured || ! Schema::hasTable('parent_days')) {
+            return;
+        }
+
+        if (! Schema::hasColumn('parent_days', 'is_active_for_students')) {
+            Schema::table('parent_days', function (Blueprint $table) {
+                $table->boolean('is_active_for_students')->default(true);
+            });
+        }
+
+        $ensured = true;
     }
 
     private function parentDayLabel(): string
@@ -1800,7 +1777,6 @@ class PortalController extends Controller
 
             if ($teacherWasCreated) {
                 $teacher = Teacher::create([
-                    'teacher_id' => $this->nextTeacherId(),
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'kuerzel' => $kuerzel !== ''
@@ -2141,51 +2117,6 @@ class PortalController extends Controller
         return $normalized !== '' ? $normalized : $email;
     }
 
-    private function nextTeacherId(): int
-    {
-        return ((int) Teacher::query()->max('teacher_id')) + 1;
-    }
-
-    private function nextTimeslotId(): int
-    {
-        return ((int) Timeslot::query()->max('id')) + 1;
-    }
-
-    private function createTimeslotsForTeacher(
-        int $teacherId,
-        ParentDay $parentDay,
-        string $startTime,
-        string $endTime,
-        int $durationInMinutes,
-        string $room
-    ): void {
-        $current = $parentDay->date->copy()->setTimeFromTimeString($startTime);
-        $end = $parentDay->date->copy()->setTimeFromTimeString($endTime);
-        $timeslots = [];
-        $nextId = $this->nextTimeslotId();
-
-        while ($current->copy()->addMinutes($durationInMinutes)->lte($end)) {
-            $slotEnd = $current->copy()->addMinutes($durationInMinutes);
-
-            $timeslots[] = array_merge([
-                'id' => $nextId++,
-                'teacher_id' => $teacherId,
-                'parent_day_id' => $parentDay->id,
-                'student_id' => null,
-                'starts_at' => $current->toDateTimeString(),
-                'ends_at' => $slotEnd->toDateTimeString(),
-                'room' => $room,
-                'is_reserved' => false,
-            ], $this->timeslotDayPayload($parentDay));
-
-            $current = $slotEnd;
-        }
-
-        if ($timeslots !== []) {
-            Timeslot::insert($timeslots);
-        }
-    }
-
     private function createGeneratedTimeslotsForTeacher(
         int $teacherId,
         ParentDay $parentDay,
@@ -2213,29 +2144,12 @@ class PortalController extends Controller
             return ['created' => 0, 'skipped' => 0];
         }
 
-        $existingStarts = Timeslot::query()
-            ->where('teacher_id', $teacherId)
-            ->where('parent_day_id', $parentDay->id)
-            ->whereIn('starts_at', collect($candidates)->map(fn (array $slot) => $slot['starts_at']->toDateTimeString())->all())
-            ->pluck('starts_at')
-            ->map(fn ($value) => Carbon::parse($value)->toDateTimeString())
-            ->all();
-
-        $existingStarts = array_flip($existingStarts);
         $timeslots = [];
-        $nextId = $this->nextTimeslotId();
-        $skipped = 0;
 
         foreach ($candidates as $slot) {
             $startsAt = $slot['starts_at']->toDateTimeString();
 
-            if (isset($existingStarts[$startsAt])) {
-                $skipped++;
-                continue;
-            }
-
             $timeslots[] = array_merge([
-                'id' => $nextId++,
                 'teacher_id' => $teacherId,
                 'parent_day_id' => $parentDay->id,
                 'student_id' => null,
@@ -2246,13 +2160,11 @@ class PortalController extends Controller
             ], $this->timeslotDayPayload($parentDay));
         }
 
-        if ($timeslots !== []) {
-            Timeslot::insert($timeslots);
-        }
+        $created = Timeslot::query()->insertOrIgnore($timeslots);
 
         return [
-            'created' => count($timeslots),
-            'skipped' => $skipped,
+            'created' => $created,
+            'skipped' => count($timeslots) - $created,
         ];
     }
 

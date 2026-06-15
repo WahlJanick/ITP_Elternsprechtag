@@ -12,7 +12,7 @@ class Teacher extends Model
 
     protected $primaryKey = 'teacher_id';
 
-    public $incrementing = false;
+    public $incrementing = true;
 
     public $timestamps = false;
 

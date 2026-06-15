@@ -6,6 +6,7 @@
     'navLinks' => [
         ['label' => 'Übersicht', 'route' => 'student.booking', 'active' => 'student.booking'],
         ['label' => 'Buchen', 'route' => 'student.teachers.index', 'active' => 'student.teachers.*'],
+        ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings'],
     ],
 ])
 
@@ -27,9 +28,9 @@
                     @foreach($bookings as $booking)
                         <article class="list-row is-interactive student-booking-row">
                             <div class="student-booking-summary">
-                                <span>{{ $booking['teacher_name'] }}</span>
-                                <span>{{ $booking['room'] }}</span>
-                                <span>{{ $booking['time_label'] }}</span>
+                                <span class="student-booking-teacher">{{ $booking['teacher_name'] }}</span>
+                                <span class="student-booking-room">{{ $booking['room'] }}</span>
+                                <span class="student-booking-time">{{ $booking['time_label'] }}</span>
                             </div>
 
                             <div class="list-row-actions actions-on-hover student-booking-actions">
@@ -99,25 +100,103 @@
         }
 
         @media (max-width: 620px) {
+            .student-bookings-screen {
+                gap: 12px;
+            }
+
+            .student-bookings-screen .panel {
+                padding: 14px 12px;
+            }
+
+            .student-bookings-screen .panel-header {
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .student-bookings-screen .print-button {
+                width: 100%;
+                min-height: 44px;
+            }
+
+            .student-bookings-screen .list-stack {
+                gap: 10px;
+            }
+
             .student-booking-row {
-                align-items: center;
-                flex-wrap: nowrap;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                align-items: stretch;
+                gap: 12px;
+                padding: 14px;
             }
 
             .student-booking-summary {
-                flex: 1;
-                justify-content: space-between;
-                gap: 10px;
-                font-size: 0.9rem;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 8px 12px;
+                width: 100%;
+                font-size: 0.92rem;
+            }
+
+            .student-booking-teacher {
+                grid-column: 1 / -1;
+                font-size: 1rem;
+                overflow-wrap: anywhere;
+            }
+
+            .student-booking-room,
+            .student-booking-time {
+                display: inline-flex;
+                align-items: center;
+                min-height: 32px;
+                padding: 4px 9px;
+                border: 1px solid color-mix(in srgb, var(--panel-stroke) 35%, transparent);
+                border-radius: 7px;
+                background: rgba(255, 255, 255, 0.58);
+                color: var(--muted);
+                white-space: nowrap;
+            }
+
+            .student-booking-time {
+                justify-self: end;
             }
 
             .student-booking-actions.actions-on-hover {
-                width: auto;
+                width: 100%;
+                opacity: 1;
+                transform: none;
+                pointer-events: auto;
+            }
+
+            .student-booking-actions form {
+                width: 100%;
             }
 
             .student-booking-actions .danger-button {
-                min-height: 38px;
-                padding: 0 10px;
+                width: 100%;
+                min-height: 44px;
+                padding: 0 12px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .student-booking-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .student-booking-teacher,
+            .student-booking-room,
+            .student-booking-time {
+                grid-column: 1;
+            }
+
+            .student-booking-room,
+            .student-booking-time {
+                justify-self: stretch;
+            }
+
+            .student-booking-time {
+                justify-content: flex-start;
             }
         }
 

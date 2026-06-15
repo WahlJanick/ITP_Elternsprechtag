@@ -5,6 +5,7 @@
     'homeRoute' => 'student.booking',
     'navLinks' => [
         ['label' => 'Übersicht', 'route' => 'student.booking', 'active' => 'student.booking'],
+        ['label' => 'Buchen', 'route' => 'student.teachers.index', 'active' => 'student.teachers.*'],
         ['label' => 'Gebucht', 'route' => 'student.bookings', 'active' => 'student.bookings', 'disabled' => ! $hasBookings],
     ],
 ])
